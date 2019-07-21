@@ -24,7 +24,7 @@ Inside each of the folders, we provided a table of metadata of the subjects for 
 2. Normalize the data using: data = (data - data.mean()) / data.std()
 3. Clip the data to the range of -1 to 2.5
 
-### Configuration setting
+### Configuration settings
 The configuration file is a json file, which looks like this:
 
     {
