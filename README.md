@@ -47,12 +47,16 @@ The configuration file is a json file, which looks like this:
     }
 
 ### train FCN and generate DPMs
+    python FCN_main.py -c config.json 
+After running above command, the following things will be performed:
+1. a FCN model will be trained from scratch, optimal model weights based on validation accuracy will be stored in the FCN_model/ folder.  
+2. After FCN training, DPMs for all subjects will be generated in the ./Riskmap/ folder with the same organization as ./data/ folder.
+3. To evaluation performance of FCN, heatmaps of various metrics will be generated (MCC, F-1, Accuracy, True Positive, False Postive, True negative, False negative) in the ./Heatmap/ folder.
+
+### train MLP with DPM features and/or other meta-infomation. 
 
 
-
-### 
-
-
+### model visualization
 
 
 
