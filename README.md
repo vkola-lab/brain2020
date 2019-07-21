@@ -38,7 +38,7 @@ Please note that the dependencies may require Python 3.6 or greater. It is recom
 ### Configuration file
 The configuration file is a json file, which looks like this:
 
-```
+```json
     {
           "model" : {
               "channels":             20,
