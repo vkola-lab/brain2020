@@ -10,9 +10,15 @@ numpy   1.16.2 \
 pandas  0.24.2 
 
 ### data preparation 
-In this work, we trained, validated and tested the framework on the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. To investigate the generalizability of the framework, we externally tested the framework on the National Alzheimer's Coordinating Center (NACC), the Australian Imaging Biomarkers and Lifestyle Study of Ageing (AIBL) and Framingham Heart Study (FHS) datasets. 
+In this work, we trained, validated and tested the framework on the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. To investigate the generalizability of the framework, we externally tested the framework on the National Alzheimer's Coordinating Center (NACC), the Australian Imaging Biomarkers and Lifestyle Study of Ageing (AIBL) and Framingham Heart Study (FHS) datasets.
 
-To download the data, please contact those affiliations directly. We only provided several data samples in the repo for the purpose of illustration. The framework should work on your own MRI data if proper data preprocessing steps were done.
+To download the data, please contact those affiliations directly. We only provided several data samples in the repo for the purpose of illustration. We organize the 3 datasets into 3 folders:
+
+data/ADNI/ \
+data/NACC/ \
+data/AIBL/ 
+
+The framework should work on your own MRI data if proper data preprocessing steps were done.
 
 
 
