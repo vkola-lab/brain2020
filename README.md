@@ -12,13 +12,19 @@ pandas  0.24.2
 ### data preparation 
 In this work, we trained, validated and tested the framework on the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. To investigate the generalizability of the framework, we externally tested the framework on the National Alzheimer's Coordinating Center (NACC), the Australian Imaging Biomarkers and Lifestyle Study of Ageing (AIBL) and Framingham Heart Study (FHS) datasets.
 
-To download the data, please contact those affiliations directly. We only provided several data samples in the repo for the purpose of illustration. We organize the 3 datasets into 3 folders:
+To download the data, please contact those affiliations directly. We only provided several data samples in the repo for the purpose of illustration. We organized the 3 datasets into 3 folders:
 
 data/ADNI/ \
 data/NACC/ \
 data/AIBL/ 
 
-The framework should work on your own MRI data if proper data preprocessing steps were done.
+Inside each of the above folder, we provided a table of meta-information of the subjects for all MRI scans that we used for model development and validation. To use the scirpts, you need to store the MRIs collected from those affilications in above corresponding folders. Note that this framework should work on your own T1-weighted MRI data if following data preprocessing pipeline were done properly:
+
+1. linear register the MRI to template, i.e, any one of the sample MRIs provided.
+2. normalize the data by data = (data - data.mean()) / data.std()
+3. clip the data to the range of -1 to 2.5
+
+
 
 
 
