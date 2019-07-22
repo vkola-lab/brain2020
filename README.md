@@ -56,7 +56,7 @@ The configuration file is a json file, which looks like this:
         },
         "predict": {
         }
-    }
+    },
     "mlp": {
         "__init__": {
             "hmap_fn":              "./dpm_statistics/ADNI/MCC.npy",
