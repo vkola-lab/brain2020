@@ -63,7 +63,7 @@ The configuration file is a json file, which looks like this:
             "features":             ["rmap"],
             "hidden_dim":           64,
             "dropout":              0.5
-        }
+        },
         "fit": {
             "dpm_fp":               ["./dpm/ADNI/"],
             "info_fn":              ["./data/ADNI/ADNI.csv"],
@@ -71,7 +71,7 @@ The configuration file is a json file, which looks like this:
             "n_epoch":              200, 
             "batch_size":           10,
             "learning_rate":        0.01
-        }
+        },
         "predict": {
             "dpm_fp":               ["./dpm/NACC/", "./dpm/AIBL/"],
             "info_fn":              ["./data/NACC/NACC.csv", "./data/AIBL/NACC.csv"],
