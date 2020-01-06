@@ -1,5 +1,5 @@
 import os
-from backends import _CNN, _FCN, _CNN
+from model import _CNN, _FCN, _CNN
 from utils import matrix_sum, get_accu, get_confusion_matrix, write_raw_score
 from dataloader import CNN_Data, FCN_Data, MLP_Data
 import torch
@@ -8,29 +8,28 @@ from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from tqdm import tqdm
 
-
 """
-frontend class are defined in this scripts which includes the following methods:
-    1. init: initialize dataloader, model, configuration
+model wraper class are defined in this scripts which includes the following methods:
+    1. init: initialize dataloader, model
     2. train:
     3. valid:
     4. test:
     5. ...
 
-    1. FCN frontend
+    1. FCN wraper
 
-    2. MLP frontend
+    2. MLP wraper
 
-    3. CNN frontend
+    3. CNN wraper
 
 """
 
-class CNN_Frontend:
+class CNN_Wraper:
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, checkpoint_dir, class1, class2):
         self.seed = seed
         self.model = _CNN(num=fil_num, p=drop_rate).cuda()
         self.prepare_dataloader(batch_size, balanced, Data_dir, class1, class2)
-        self.checkpoint_dir = checkpoint_dir
+        self.checkpoint_dir = checkpoint_dir   # the checkpoint_dir will be like: ./checkpoint_dir/exp1/
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
 

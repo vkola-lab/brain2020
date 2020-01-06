@@ -1,0 +1,43 @@
+{
+    "repeat_time":                  5,
+    "fcn": {
+        "__init__": {
+            "channels":             20,
+            "dropout":              0.6
+        },
+        "fit": {
+            "trn_mri_fp":           ["./data/ADNI/"],
+            "vld_mri_fp":           ["./data/NACC/", "./data/AIBL/"],
+            "n_epoch":              2000,             
+            "pretrained_weights":   "",             
+            "batch_size":           16,             
+            "learning_rate":        0.0001
+        },
+        "predict": {
+        }
+    },
+    "mlp": {
+        "__init__": {
+            "hmap_fn":              "./dpm_statistics/ADNI/MCC.npy",
+            "features":             ["rmap"],
+            "hidden_dim":           64,
+            "dropout":              0.5
+        },
+        "fit": {
+            "dpm_fp":               ["./dpm/ADNI/"],
+            "info_fn":              ["./data/ADNI/ADNI.csv"],
+            "loss_balance":         2.3,
+            "n_epoch":              200, 
+            "batch_size":           10,
+            "learning_rate":        0.01
+        },
+        "predict": {
+            "dpm_fp":               ["./dpm/NACC/", "./dpm/AIBL/"],
+            "info_fn":              ["./data/NACC/NACC.csv", "./data/AIBL/NACC.csv"],
+            "batch_size":           -1
+        }
+    }
+}
+
+
+

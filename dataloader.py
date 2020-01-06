@@ -4,7 +4,6 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from torch.autograd import Variable
 from utils import PatchGenerator, padding
 import random
 import copy

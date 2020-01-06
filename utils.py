@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
 from numpy import random
+import json
 
 class PatchGenerator:
     def __init__(self, patch_size):
@@ -82,4 +83,15 @@ def get_AD_risk(raw):
                 risk[i, j, k] = softmax(raw[0, i, j, k], raw[1, i, j, k])
     return risk
 
+def read_json(config_file):
+    with open(config_file) as config_buffer:
+        config = json.loads(config_buffer.read())
+    return config
 
+def write_raw_score(f, preds, labels):
+    preds = preds.data.cpu().numpy()
+    labels = labels.data.cpu().numpy()
+    for index, pred in enumerate(preds):
+        label = str(labels[index])
+        pred = "__".join(map(str, list(pred)))
+        f.write(pred + '__' + label + '\n')
