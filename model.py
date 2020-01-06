@@ -1,41 +1,55 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May 29 12:51:57 2019
-@author: Shangranq
-"""
-
+from __future__ import print_function, division
+import os
 import torch
 import torch.nn as nn
-import copy
 import numpy as np
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms, utils
+from torch.autograd import Variable
+from utils import read_txt
+import random
+import copy
 
-# define the FCN
+
+"""
+models are defined in this scripts:
+
+    1. FCN
+        (a). details
+
+    2. MLP 
+        (a). details
+
+    3. CNN 
+        (a). details
+        
+"""
+
 class _FCN(nn.Module):
     def __init__(self, num, p):
         super(_FCN, self).__init__()
         self.features = nn.Sequential(
             # 47, 47, 47
-            nn.Conv3d(1, num, 4, 1, 0, bias=False), 
-            nn.MaxPool3d(2, 1, 0),                  
+            nn.Conv3d(1, num, 4, 1, 0, bias=False),
+            nn.MaxPool3d(2, 1, 0),
             nn.BatchNorm3d(num),
             nn.LeakyReLU(),
             nn.Dropout(0.1),
             # 43, 43, 43
             nn.Conv3d(num, 2*num, 4, 1, 0, bias=False),
-            nn.MaxPool3d(2, 2, 0),                     
+            nn.MaxPool3d(2, 2, 0),
             nn.BatchNorm3d(2*num),
             nn.LeakyReLU(),
             nn.Dropout(0.1),
             # 20, 20, 20
             nn.Conv3d(2*num, 4*num, 3, 1, 0, bias=False),
-            nn.MaxPool3d(2, 2, 0),                      
+            nn.MaxPool3d(2, 2, 0),
             nn.BatchNorm3d(4*num),
             nn.LeakyReLU(),
             nn.Dropout(0.1),
             # 9, 9, 9
             nn.Conv3d(4*num, 8*num, 3, 1, 0, bias=False),
-            nn.MaxPool3d(2, 1, 0),                       
+            nn.MaxPool3d(2, 1, 0),
             nn.BatchNorm3d(8*num),
             nn.LeakyReLU(),
             # 6, 6, 6
@@ -50,6 +64,10 @@ class _FCN(nn.Module):
         self.feature_length = 8*num*6*6*6
 
     def forward(self, x, stage='train'):
+        """
+        :param x:
+        :param stage: why need the stage?
+        """
         x = self.features(x)
         if stage != 'inference':
             x = x.view(-1, self.feature_length)
@@ -71,20 +89,11 @@ class _FCN(nn.Module):
         return fcn
 
 
-def FCN_weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        m.weight.data.normal_(0.0, 0.02)
-    elif classname.find('BatchNorm') != -1:
-        m.weight.data.normal_(1.0, 0.02)
-        m.bias.data.fill_(0)
 
-
-class CNN(nn.Module):
+class _CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
         self.features = nn.Sequential(
-
             nn.Conv3d(1, 8, 3, 1, 0),
             nn.ReLU(),
             nn.Conv3d(8, 8, 3, 1, 0),
@@ -129,3 +138,5 @@ class CNN(nn.Module):
         x = self.classifier(x)
         return x
 
+
+class _MLP(nn.Module):
