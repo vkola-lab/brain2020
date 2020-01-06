@@ -25,11 +25,12 @@ model wraper class are defined in this scripts which includes the following meth
 """
 
 class CNN_Wraper:
-    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, checkpoint_dir, class1, class2):
+    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx):
         self.seed = seed
+        self.exp_idx = exp_idx
         self.model = _CNN(num=fil_num, p=drop_rate).cuda()
-        self.prepare_dataloader(batch_size, balanced, Data_dir, class1, class2)
-        self.checkpoint_dir = checkpoint_dir   # the checkpoint_dir will be like: ./checkpoint_dir/exp1/
+        self.prepare_dataloader(batch_size, balanced, Data_dir)
+        self.checkpoint_dir = './checkpoint_dir/exp{}/'.format(exp_idx)
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
 
@@ -96,26 +97,24 @@ class CNN_Wraper:
                 valid_matrix = matrix_sum(valid_matrix, get_confusion_matrix(preds, labels))
         return valid_matrix
 
-    def prepare_dataloader(self, batch_size, balanced, Data_dir, class1, class2):
-        train_data = CNN_Data(Data_dir, class1, class2, seed=self.seed, stage='train')
-        valid_data = CNN_Data(Data_dir, class1, class2, seed=self.seed, stage='valid')
-        test_data  = CNN_Data(Data_dir, class1, class2, seed=self.seed, stage='test')
+    def prepare_dataloader(self, batch_size, balanced, Data_dir):
+        train_data = CNN_Data(Data_dir, self.exp_idx, stage='train', seed=self.seed)
+        valid_data = CNN_Data(Data_dir, self.exp_idx, stage='valid', seed=self.seed)
+        test_data  = CNN_Data(Data_dir, self.exp_idx, stage='test', seed=self.seed)
         sample_weight, self.imbalanced_ratio = train_data.get_sample_weights()
         # the following if else blocks represent two ways of handling class imbalance issue
-        if balanced:
-            # if config['balanced'] == 1, use pytorch sampler to sample data with probability according to the count of each class
+        if balanced == 1:
+            # use pytorch sampler to sample data with probability according to the count of each class
             # so that each mini-batch has the same expectation counts of samples from each class
             sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weight, len(sample_weight))
             self.train_dataloader = DataLoader(train_data, batch_size=batch_size, sampler=sampler)
             self.imbalanced_ratio = 1
-        else:
-            # if config['balanced'] == 0, sample data from the same probability, but
+        elif balanced == 0:
+            # sample data from the same probability, but
             # self.imbalanced_ratio will be used in the weighted cross entropy loss to handle imbalanced issue
             self.train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
         self.valid_dataloader = DataLoader(valid_data, batch_size=batch_size, shuffle=True)
         self.test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
-
-
 
 
 if __name__ == "__main__":

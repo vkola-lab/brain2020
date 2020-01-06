@@ -5,6 +5,9 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 from numpy import random
 import json
+import csv
+import random
+import os
 
 class PatchGenerator:
     def __init__(self, patch_size):
@@ -95,3 +98,31 @@ def write_raw_score(f, preds, labels):
         label = str(labels[index])
         pred = "__".join(map(str, list(pred)))
         f.write(pred + '__' + label + '\n')
+
+def read_csv(filename):
+    with open(filename, 'r') as f:
+        reader = csv.reader(f)
+        your_list = list(reader)
+    filenames = [a[0] for a in your_list[1:]]
+    labels = [0 if a[1]=='NL' else 1 for a in your_list[1:]]
+    return filenames, labels
+
+def data_split(repe_time):
+    with open('./lookupcsv/ADNI.csv', 'r') as f:
+        reader = csv.reader(f)
+        your_list = list(reader)
+    labels, train_valid, test = your_list[0:1], your_list[1:338], your_list[338:]
+    for i in range(repe_time):
+        random.shuffle(train_valid)
+        folder = 'lookupcsv/exp{}/'.format(i)
+        if not os.path.exists(folder):
+            os.mkdir(folder) 
+        with open(folder + 'train.csv', 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+            wr.writerows(labels + train_valid[:217])
+        with open(folder + 'valid.csv', 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+            wr.writerows(labels + train_valid[217:])
+        with open(folder + 'test.csv', 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+            wr.writerows(labels + test)

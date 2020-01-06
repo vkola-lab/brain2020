@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from utils import PatchGenerator, padding
+from utils import PatchGenerator, padding, read_csv
 import random
 import copy
 
@@ -30,60 +30,38 @@ dataloaders are defined in this scripts:
 
 class CNN_Data(Dataset):
     """
-    txt files ./lookuptxt/*.txt complete path of MRIs
+    csv files ./lookuptxt/*.csv contains MRI filenames along with demographic and diagnosis information 
     MRI with clip and backremove: /data/datasets/ADNI_NoBack/*.npy
     """
-    def __init__(self, Data_dir, class1, class2, stage, ratio=(0.6, 0.2, 0.2), seed=1000):
+    def __init__(self, Data_dir, exp_idx, stage, seed=1000):
         random.seed(seed)
         self.Data_dir = Data_dir
-        Data_list0 = read_txt('../lookuptxt/', class1 + '.txt')
-        Data_list1 = read_txt('../lookuptxt/', class2 + '.txt')
-        self.Data_list = Data_list0 + Data_list1
-        self.Label_list = [0]*len(Data_list0) + [1]*len(Data_list1)
-        length = len(self.Data_list)
-        idxs = list(range(length))
-        random.shuffle(idxs)
-        split1, split2 = int(length*ratio[0]), int(length*(ratio[0]+ratio[1]))
-        self.stage = stage
-        if self.stage == 'train':
-            self.index_list = idxs[:split1]
-        elif self.stage == 'valid':
-            self.index_list = idxs[split1:split2]
-        elif self.stage == 'test':
-            self.index_list = idxs[split2:]
-        else:
-            raise ValueError('invalid stage setting')
+        self.Data_list, self.Label_list = read_csv('../lookuptxt/exp{}/{}.csv'.format(exp_idx, stage))
 
     def __len__(self):
-        return len(self.index_list)
+        return len(self.Data_list)
 
     def __getitem__(self, idx):
-        index = self.index_list[idx]
-        label = self.Label_list[index]
-        data = np.load(self.Data_dir + self.Data_list[index]).astype(np.float32)
+        label = self.Label_list[idx]
+        data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
         data = np.expand_dims(data, axis=0)
         return data, label
 
     def get_sample_weights(self):
-        labels = []
-        for idx in self.index_list:
-            labels.append(self.Label_list[idx])
-        count, count0, count1 = float(len(labels)), float(labels.count(0)), float(labels.count(1))
-        weights = [count / count0 if i == 0 else count / count1 for i in labels]
+        count, count0, count1 = float(len(self.Label_list)), float(self.Label_list.count(0)), float(self.Label_list.count(1))
+        weights = [count / count0 if i == 0 else count / count1 for i in self.Label_list]
         return weights, count0 / count1
 
 
 class FCN_Data(CNN_Data):
-
-    def __init__(self, Data_dir, class1, class2, stage, ratio=(0.6, 0.2, 0.2), seed=1000, patch_size=47):
-        CNN_Data.__init__(self, Data_dir, class1, class2, stage, ratio=(0.6, 0.2, 0.2), seed=1000)
+    def __init__(self, Data_dir, exp_idx, stage, seed=1000, patch_size=47):
+        CNN_Data.__init__(self, Data_dir, exp_idx, stage, seed=1000)
         self.patch_size = patch_size
         self.patch_sampler = PatchGenerator(patch_size=self.patch_size)
 
     def __getitem__(self, idx):
-        index = self.index_list[idx]
-        label = self.Label_list[index]
-        data = np.load(self.Data_dir + self.Data_list[index]).astype(np.float32)
+        label = self.Label_list[idx]
+        data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
         if self.stage == 'test' or self.stage == 'valid':
             data = np.expand_dims(padding(data, margin_width=self.patch_size//2), axis=0)
             return data, label

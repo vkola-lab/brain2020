@@ -36,6 +36,15 @@
             "info_fn":              ["./data/NACC/NACC.csv", "./data/AIBL/NACC.csv"],
             "batch_size":           -1
         }
+    }, 
+    "cnn": {
+        "fil_num":              7,
+        "drop_rate":            0.5,
+        "batch_size":           10,
+        "balanced":             1,
+        "Data_dir":             "/data/datasets/ADNI_NoBack/",
+        "learning_rate":        0.001,
+        "train_epochs":         200
     }
 }
 
