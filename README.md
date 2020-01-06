@@ -1,4 +1,4 @@
-# Neurologist-level Alzheimer's disease classification using an explainable deep learning framework
+# Development and validation of a deep learning framework for Alzheimers disease classification
 
 This repo contains a PyTorch implementation of a deep learning framework for Alzheimer's disease classification using volumetric brain MR images. This framework comprises a fully convolutional network (FCN) and a multilayer perceptron (MLP) model. The FCN generates a novel 3D visualization of the disease affected regions. We refer to them as disease probability map (DPM) in our paper. Features taken from the DPMs are then sent into the MLP model to achieve an overall classification of AD status. 
 
