@@ -1,16 +1,31 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May 29 12:51:57 2019
-@author: shangranq
-"""
-
 import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
 from numpy import random
+
+class PatchGenerator:
+    def __init__(self, patch_size):
+        self.patch_size = patch_size
+
+    def random_sample(self, volume):
+        """sample random patch from numpy array data"""
+        X, Y, Z = volume.shape
+        x = random.randint(0, X-self.patch_size)
+        y = random.randint(0, Y-self.patch_size)
+        z = random.randint(0, Z-self.patch_size)
+        return volume[x:x+self.patch_size, y:y+self.patch_size, z:z+self.patch_size]
+
+    def fixed_sample(self, data):
+        """sample patch from fixed locations"""
+        patches = []
+        patch_locs = [[25, 90, 30], [115, 90, 30], [67, 90, 90], [67, 45, 60], [67, 135, 60]]
+        for i, loc in enumerate(patch_locs):
+            x, y, z = loc
+            patch = data[x:x+47, y:y+47, z:z+47]
+            patches.append(np.expand_dims(patch, axis = 0))
+        return patches
 
 def load_txt(txt_dir, txt_name):
     List = []
