@@ -1,5 +1,5 @@
 from utils import read_json, data_split
-from model_wraper import CNN_Wraper
+from model_wraper import CNN_Wraper, FCN_Wraper
 import torch
 
 seed = 1000
@@ -26,24 +26,29 @@ def cnn_main():
                   epochs = cnn_setting['train_epochs'])
         cnn.test()
     
+def fcn_main():
+    # FCN training and validation
+    fcn_setting = config['fcn']
+    for exp_idx in range(repe_time):
+        fcn = FCN_Wraper(fil_num        = fcn_setting['fil_num'],
+                        drop_rate       = fcn_setting['drop_rate'],
+                        batch_size      = fcn_setting['batch_size'],
+                        balanced        = fcn_setting['balanced'],
+                        Data_dir        = fcn_setting['Data_dir'],
+                        patch_size      = fcn_setting['patch_size'],
+                        exp_idx         = exp_idx,
+                        seed            = seed,
+                        model_name      = 'fcn',
+                        metric          = 'accuracy')
+        fcn.train(lr     = fcn_setting['learning_rate'],
+                  epochs = fcn_setting['train_epochs'])
+        fcn.test()
 
-# FCN training and validation
-# fcn_setting = config['fcn']
-# for exp_idx in range(repe_time):
-#     fcn = FCN_Wraper(fil_num        = fcn_setting['fil_num'], 
-#                     drop_rate       = fcn_setting['drop_rate'], 
-#                     batch_size      = fcn_setting['batch_size'], 
-#                     balanced        = fcn_setting['balanced'], 
-#                     Data_dir        = fcn_setting['Data_dir'], 
-#                     exp_dir         = exp_idx,
-#                     seed            = seed)
-#     fcn.train(lr     = fcn_setting['learning_rate'],
-#               epochs = fcn_setting['train_epochs'])
-#     fcn.test()
 
 
 if __name__ == "__main__":
     with torch.cuda.device(3):
-        cnn_main()
+        fcn_main()
+
 
 

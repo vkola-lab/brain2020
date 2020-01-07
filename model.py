@@ -58,12 +58,9 @@ class _FCN(nn.Module):
             nn.Linear(30, 2),
         )
         self.feature_length = 8*num*6*6*6
+        self.num = num
 
     def forward(self, x, stage='train'):
-        """
-        :param x:
-        :param stage: why need the stage?
-        """
         x = self.features(x)
         if stage != 'inference':
             x = x.view(-1, self.feature_length)
@@ -72,7 +69,7 @@ class _FCN(nn.Module):
 
     def dense_to_conv(self):
         fcn = copy.deepcopy(self)
-        A = fcn.classifier[1].weight.view(30, 160, 6, 6, 6)
+        A = fcn.classifier[1].weight.view(30, 8*self.num, 6, 6, 6)
         B = fcn.classifier[4].weight.view(2, 30, 1, 1, 1)
         C = fcn.classifier[1].bias
         D = fcn.classifier[4].bias

@@ -7,6 +7,7 @@ import json
 import csv
 import random
 import os
+import time
 
 class PatchGenerator:
     def __init__(self, patch_size):
@@ -76,7 +77,6 @@ def softmax(x1, x2):
     return np.exp(x2) / (np.exp(x1) + np.exp(x2))
 
 def get_AD_risk(raw):
-    raw = raw[0, :, :, :, :].cpu()
     a, x, y, z = raw.shape
     risk = np.zeros((x, y, z))
     for i in range(x):
@@ -127,5 +127,40 @@ def data_split(repe_time):
             wr.writerows(labels + test)
 
 
-def DPM_statistics(DPMs):
-    for 
+def DPM_statistics(DPMs, Labels):
+    shape = DPMs[0].shape[1:]
+    voxel_number = shape[0] * shape[1] * shape[2]
+    TP, FP, TN, FN = np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)
+    for label, DPM in zip(Labels, DPMs):
+        risk_map = get_AD_risk(DPM)
+        if label == 0:
+            TN += (risk_map < 0.5).astype(np.int)
+            FP += (risk_map >= 0.5).astype(np.int)
+        elif label == 1:
+            TP += (risk_map >= 0.5).astype(np.int)
+            FN += (risk_map < 0.5).astype(np.int)
+    tn = float("{0:.2f}".format(np.sum(TN)/voxel_number))
+    fn = float("{0:.2f}".format(np.sum(FN)/voxel_number))
+    tp = float("{0:.2f}".format(np.sum(TP) / voxel_number))
+    fp = float("{0:.2f}".format(np.sum(FP) / voxel_number))
+    matrix = [[tn, fn], [fp, tp]]
+    count = len(Labels)
+    TP, TN, FP, FN = TP.astype(np.float)/count, TN.astype(np.float)/count, FP.astype(np.float)/count, FN.astype(np.float)/count
+    ACCU = TP + TN
+    F1 = 2*TP/(2*TP+FP+FN)
+    MCC = (TP*TN-FP*FN)/(np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))+0.00000001*np.ones(shape))
+    return matrix, ACCU, F1, MCC
+
+
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if 'log_time' in kw:
+            name = kw.get('log_name', method.__name__.upper())
+            kw['log_time'][name] = int((te - ts) * 1000)
+        else:
+            print('%r  %2.2f ms' % (method.__name__, (te - ts) * 1000))
+        return result
+    return timed

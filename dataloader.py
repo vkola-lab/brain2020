@@ -56,6 +56,7 @@ class CNN_Data(Dataset):
 class FCN_Data(CNN_Data):
     def __init__(self, Data_dir, exp_idx, stage, seed=1000, patch_size=47):
         CNN_Data.__init__(self, Data_dir, exp_idx, stage, seed=1000)
+        self.stage = stage
         self.patch_size = patch_size
         self.patch_sampler = PatchGenerator(patch_size=self.patch_size)
 
@@ -63,7 +64,7 @@ class FCN_Data(CNN_Data):
         label = self.Label_list[idx]
         data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
         if self.stage == 'test' or self.stage == 'valid':
-            data = np.expand_dims(padding(data, margin_width=self.patch_size//2), axis=0)
+            data = np.expand_dims(padding(data, win_size=self.patch_size//2), axis=0)
             return data, label
         elif self.stage == 'train':
             patch = self.patch_sampler.random_sample(data)

@@ -1,20 +1,14 @@
 {
-    "repeat_time":                  5,
-    "fcn": {
-        "__init__": {
-            "channels":             20,
-            "dropout":              0.6
-        },
-        "fit": {
-            "trn_mri_fp":           ["./data/ADNI/"],
-            "vld_mri_fp":           ["./data/NACC/", "./data/AIBL/"],
-            "n_epoch":              2000,             
-            "pretrained_weights":   "",             
-            "batch_size":           16,             
-            "learning_rate":        0.0001
-        },
-        "predict": {
-        }
+    "repeat_time":              5,
+    "fcn":{
+        "fil_num":              20,
+        "drop_rate":            0.5,
+        "patch_size":           47,
+        "batch_size":           10,
+        "balanced":             1,
+        "Data_dir":             "/data/datasets/ADNI_NoBack/",
+        "learning_rate":        0.001,
+        "train_epochs":         2
     },
     "mlp": {
         "__init__": {

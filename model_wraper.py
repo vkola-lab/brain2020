@@ -1,6 +1,6 @@
 import os
 from model import _CNN, _FCN, _CNN
-from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics
+from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit
 from dataloader import CNN_Data, FCN_Data, MLP_Data
 import torch
 import torch.nn as nn
@@ -79,6 +79,7 @@ class CNN_Wraper:
                             pass
             torch.save(self.model.state_dict(), '{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch))
 
+    @timeit
     def train_model_epoch(self):
         self.model.train(True)
         for inputs, labels in self.train_dataloader:
@@ -89,6 +90,7 @@ class CNN_Wraper:
             loss.backward()
             self.optimizer.step()
 
+    @timeit
     def valid_model_epoch(self):
         with torch.no_grad():
             self.model.train(False)
@@ -132,32 +134,46 @@ class FCN_Wraper(CNN_Wraper):
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
 
+    def train(self, lr, epochs):
+        self.optimizer = optim.Adam(self.model.parameters(), lr=lr, betas=(0.5, 0.999))
+        self.criterion = nn.CrossEntropyLoss(weight=torch.Tensor([1, self.imbalanced_ratio])).cuda()
+        self.optimal_valid_matrix = [[0, 0], [0, 0]]
+        self.optimal_valid_metric = 0
+        self.optimal_epoch        = -1
+        for self.epoch in range(epochs):
+            self.train_model_epoch()
+            valid_matrix = self.valid_model_epoch()
+            print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
+            self.save_checkpoint(valid_matrix)
+        print('Best model saved at the {}th epoch:'.format(self.optimal_epoch), self.optimal_valid_metric, self.optimal_valid_matrix)
+        return self.optimal_valid_metric
+
     def test(self):
-        f = open(self.checkpoint_dir + 'raw_score_seed{}'.format(self.seed) + '.txt', 'w')
         self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
+        self.fcn = self.model.dense_to_conv()
+        DPMs, Labels = [], []
         with torch.no_grad():
-            self.model.train(False)
-            test_matrix = [[0, 0], [0, 0]]
+            self.fcn.train(False)
             for inputs, labels in self.test_dataloader:
                 inputs, labels = inputs.cuda(), labels.cuda()
-                preds = self.model(inputs)
-                write_raw_score(f, preds, labels)
-                test_matrix = matrix_sum(test_matrix, get_confusion_matrix(preds, labels))
+                DPM = self.fcn(inputs, stage='inference')
+                DPMs.append(DPM.cpu().numpy().squeeze())
+                Labels.append(labels)
+        test_matrix, ACCU, F1, MCC = DPM_statistics(DPMs, Labels)
         print('Test confusion matrix:', test_matrix, 'test_metric:', "%.4f" % self.eval_metric(test_matrix))
-        f.close()
         return self.eval_metric(test_matrix)
     
     def valid_model_epoch(self):
+        self.fcn = self.model.dense_to_conv()
         DPMs, Labels = [], []
         with torch.no_grad():
-            self.model.train(False)
-            valid_matrix = [[0, 0], [0, 0]]
+            self.fcn.train(False)
             for inputs, labels in self.valid_dataloader:
                 inputs, labels = inputs.cuda(), labels.cuda()
-                DPM = self.model(inputs)
+                DPM = self.fcn(inputs, stage='inference')
                 DPMs.append(DPM.cpu().numpy().squeeze())
                 Labels.append(labels)
-        valid_matrix = DPM_statistics(DPMs, Labels)
+        valid_matrix, ACCU, F1, MCC = DPM_statistics(DPMs, Labels)
         return valid_matrix
 
     def prepare_dataloader(self, batch_size, balanced, Data_dir):
