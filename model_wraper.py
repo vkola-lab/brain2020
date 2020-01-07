@@ -1,6 +1,6 @@
 import os
 from model import _CNN, _FCN, _CNN
-from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit
+from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit, read_csv
 from dataloader import CNN_Data, FCN_Data, MLP_Data
 import torch
 import torch.nn as nn
@@ -79,7 +79,6 @@ class CNN_Wraper:
                             pass
             torch.save(self.model.state_dict(), '{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch))
 
-    @timeit
     def train_model_epoch(self):
         self.model.train(True)
         for inputs, labels in self.train_dataloader:
@@ -90,7 +89,6 @@ class CNN_Wraper:
             loss.backward()
             self.optimizer.step()
 
-    @timeit
     def valid_model_epoch(self):
         with torch.no_grad():
             self.model.train(False)
@@ -133,6 +131,9 @@ class FCN_Wraper(CNN_Wraper):
         self.checkpoint_dir = './checkpoint_dir/{}_exp{}/'.format(self.model_name, exp_idx)
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
+        self.DPMs_dir = './DPMs/{}_exp{}/'.format(self.model_name, exp_idx)
+        if not os.path.exists(self.DPMs_dir):
+            os.mkdir(self.DPMs_dir)
 
     def train(self, lr, epochs):
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr, betas=(0.5, 0.999))
@@ -142,9 +143,10 @@ class FCN_Wraper(CNN_Wraper):
         self.optimal_epoch        = -1
         for self.epoch in range(epochs):
             self.train_model_epoch()
-            valid_matrix = self.valid_model_epoch()
-            print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
-            self.save_checkpoint(valid_matrix)
+            if self.epoch % 10 == 0:
+                valid_matrix = self.valid_model_epoch()
+                print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
+                self.save_checkpoint(valid_matrix)
         print('Best model saved at the {}th epoch:'.format(self.optimal_epoch), self.optimal_valid_metric, self.optimal_valid_matrix)
         return self.optimal_valid_metric
 
@@ -154,21 +156,22 @@ class FCN_Wraper(CNN_Wraper):
         DPMs, Labels = [], []
         with torch.no_grad():
             self.fcn.train(False)
-            for inputs, labels in self.test_dataloader:
+            for idx, (inputs, labels) in enumerate(self.test_dataloader):
                 inputs, labels = inputs.cuda(), labels.cuda()
                 DPM = self.fcn(inputs, stage='inference')
-                DPMs.append(DPM.cpu().numpy().squeeze())
+                DPM = DPM.cpu().numpy().squeeze()
+                DPMs.append(DPM)
                 Labels.append(labels)
         test_matrix, ACCU, F1, MCC = DPM_statistics(DPMs, Labels)
         print('Test confusion matrix:', test_matrix, 'test_metric:', "%.4f" % self.eval_metric(test_matrix))
         return self.eval_metric(test_matrix)
-    
+
     def valid_model_epoch(self):
         self.fcn = self.model.dense_to_conv()
         DPMs, Labels = [], []
         with torch.no_grad():
             self.fcn.train(False)
-            for inputs, labels in self.valid_dataloader:
+            for idx, (inputs, labels) in enumerate(self.valid_dataloader):
                 inputs, labels = inputs.cuda(), labels.cuda()
                 DPM = self.fcn(inputs, stage='inference')
                 DPMs.append(DPM.cpu().numpy().squeeze())
@@ -180,6 +183,9 @@ class FCN_Wraper(CNN_Wraper):
         train_data = FCN_Data(Data_dir, self.exp_idx, stage='train', seed=self.seed, patch_size=self.patch_size)
         valid_data = FCN_Data(Data_dir, self.exp_idx, stage='valid', seed=self.seed, patch_size=self.patch_size)
         test_data  = FCN_Data(Data_dir, self.exp_idx, stage='test', seed=self.seed, patch_size=self.patch_size)
+        ADNI_data  = FCN_Data(Data_dir, self.exp_idx, stage='ADNI', seed=self.seed, patch_size=self.patch_size)
+        NACC_data  = FCN_Data('/data/datasets/NACC/', self.exp_idx, stage='NACC', seed=self.seed, patch_size=self.patch_size)
+        AIBL_data  = FCN_Data('/data/datasets/AIBL/', self.exp_idx, stage='AIBL', seed=self.seed, patch_size=self.patch_size)
         sample_weight, self.imbalanced_ratio = train_data.get_sample_weights()
         # the following if else blocks represent two ways of handling class imbalance issue
         if balanced == 1:
@@ -194,6 +200,33 @@ class FCN_Wraper(CNN_Wraper):
             self.train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
         self.valid_dataloader = DataLoader(valid_data, batch_size=1, shuffle=False)
         self.test_dataloader = DataLoader(test_data, batch_size=1, shuffle=False)
+        self.ADNI_dataloader = DataLoader(ADNI_data, batch_size=1, shuffle=False)
+        self.NACC_dataloader = DataLoader(NACC_data, batch_size=1, shuffle=False)
+        self.AIBL_dataloader = DataLoader(AIBL_data, batch_size=1, shuffle=False)
+
+    def gen_DPMs(self):
+        self.fcn.train(False)
+        with torch.no_grad():
+            filenames, _ = read_csv('./lookupcsv/ADNI.csv')
+            for idx, (inputs, labels) in enumerate(self.ADNI_dataloader):
+                inputs, labels = inputs.cuda(), labels.cuda()
+                DPM = self.fcn(inputs, stage='inference')
+                DPM = DPM.cpu().numpy().squeeze()
+                np.save(self.DPMs_dir + filenames[idx] + '.npy', DPM)
+
+            filenames, _ = read_csv('./lookupcsv/NACC.csv')
+            for idx, (inputs, labels) in enumerate(self.NACC_dataloader):
+                inputs, labels = inputs.cuda(), labels.cuda()
+                DPM = self.fcn(inputs, stage='inference')
+                DPM = DPM.cpu().numpy().squeeze()
+                np.save(self.DPMs_dir + filenames[idx] + '.npy', DPM)
+
+            filenames, _ = read_csv('./lookupcsv/AIBL.csv')
+            for idx, (inputs, labels) in enumerate(self.AIBL_dataloader):
+                inputs, labels = inputs.cuda(), labels.cuda()
+                DPM = self.fcn(inputs, stage='inference')
+                DPM = DPM.cpu().numpy().squeeze()
+                np.save(self.DPMs_dir + filenames[idx] + '.npy', DPM)
 
 
 if __name__ == "__main__":

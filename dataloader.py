@@ -36,7 +36,10 @@ class CNN_Data(Dataset):
     def __init__(self, Data_dir, exp_idx, stage, seed=1000):
         random.seed(seed)
         self.Data_dir = Data_dir
-        self.Data_list, self.Label_list = read_csv('./lookupcsv/exp{}/{}.csv'.format(exp_idx, stage))
+        if stage in ['train', 'valid', 'test']:
+            self.Data_list, self.Label_list = read_csv('./lookupcsv/exp{}/{}.csv'.format(exp_idx, stage))
+        elif stage in ['ADNI', 'NACC', 'AIBL']:
+            self.Data_list, self.Label_list = read_csv('./lookupcsv/{}.csv'.format(stage))
 
     def __len__(self):
         return len(self.Data_list)
@@ -63,13 +66,13 @@ class FCN_Data(CNN_Data):
     def __getitem__(self, idx):
         label = self.Label_list[idx]
         data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
-        if self.stage == 'test' or self.stage == 'valid':
-            data = np.expand_dims(padding(data, win_size=self.patch_size//2), axis=0)
-            return data, label
-        elif self.stage == 'train':
+        if self.stage == 'train':
             patch = self.patch_sampler.random_sample(data)
             patch = np.expand_dims(patch, axis=0)
             return patch, label
+        else:
+            data = np.expand_dims(padding(data, win_size=self.patch_size // 2), axis=0)
+            return data, label
 
 
 class MLP_Data(Dataset):
@@ -79,7 +82,7 @@ class MLP_Data(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = CNN_Data(Data_dir='/data/datasets/ADNI_NoBack/', class1='ADNI_1.5T_GAN_NL', class2='ADNI_1.5T_GAN_AD', stage='train')
+    dataset = CNN_Data(Data_dir='/data/datasets/ADNI_NoBack/', stage='train')
     for i in range(len(dataset)):
         scan, label = dataset[i]
         print(scan.shape, label.shape)

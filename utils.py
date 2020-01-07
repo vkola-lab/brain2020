@@ -9,6 +9,7 @@ import random
 import os
 import time
 
+
 class PatchGenerator:
     def __init__(self, patch_size):
         self.patch_size = patch_size
@@ -31,6 +32,7 @@ class PatchGenerator:
             patches.append(np.expand_dims(patch, axis = 0))
         return patches
 
+
 def load_txt(txt_dir, txt_name):
     List = []
     with open(txt_dir + txt_name, 'r') as f:
@@ -38,10 +40,12 @@ def load_txt(txt_dir, txt_name):
             List.append(line.strip('\n').replace('.nii', '.npy'))
     return List
 
+
 def padding(tensor, win_size=23):
     A = np.ones((tensor.shape[0]+2*win_size, tensor.shape[1]+2*win_size, tensor.shape[2]+2*win_size)) * tensor[-1,-1,-1]
     A[win_size:win_size+tensor.shape[0], win_size:win_size+tensor.shape[1], win_size:win_size+tensor.shape[2]] = tensor
     return A.astype(np.float32)
+
 
 def get_confusion_matrix(preds, labels):
     labels = labels.data.cpu().numpy()
@@ -60,21 +64,26 @@ def get_confusion_matrix(preds, labels):
                 matrix[1][1] += 1
     return matrix
 
+
 def matrix_sum(A, B): 
     return [[A[0][0]+B[0][0], A[0][1]+B[0][1]],
             [A[1][0]+B[1][0], A[1][1]+B[1][1]]]
 
+
 def get_accu(matrix):
     return float(matrix[0][0] + matrix[1][1])/ float(sum(matrix[0]) + sum(matrix[1]))
+
 
 def get_MCC(matrix):
     TP, TN, FP, FN = float(matrix[0][0]), float(matrix[1][1]), float(matrix[0][1]), float(matrix[1][0])
     upper = TP * TN - FP * FN
     lower = (TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)
     return upper / (lower**0.5 + 0.000000001)
-    
+
+
 def softmax(x1, x2):
     return np.exp(x2) / (np.exp(x1) + np.exp(x2))
+
 
 def get_AD_risk(raw):
     a, x, y, z = raw.shape
@@ -90,6 +99,7 @@ def read_json(config_file):
         config = json.loads(config_buffer.read())
     return config
 
+
 def write_raw_score(f, preds, labels):
     preds = preds.data.cpu().numpy()
     labels = labels.data.cpu().numpy()
@@ -98,6 +108,7 @@ def write_raw_score(f, preds, labels):
         pred = "__".join(map(str, list(pred)))
         f.write(pred + '__' + label + '\n')
 
+
 def read_csv(filename):
     with open(filename, 'r') as f:
         reader = csv.reader(f)
@@ -105,6 +116,7 @@ def read_csv(filename):
     filenames = [a[0] for a in your_list[1:]]
     labels = [0 if a[1]=='NL' else 1 for a in your_list[1:]]
     return filenames, labels
+
 
 def data_split(repe_time):
     with open('./lookupcsv/ADNI.csv', 'r') as f:
@@ -118,38 +130,13 @@ def data_split(repe_time):
             os.mkdir(folder) 
         with open(folder + 'train.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-            wr.writerows(labels + train_valid[:217])
+            wr.writerows(labels + train_valid[:250])
         with open(folder + 'valid.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-            wr.writerows(labels + train_valid[217:])
+            wr.writerows(labels + train_valid[250:])
         with open(folder + 'test.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
             wr.writerows(labels + test)
-
-
-def DPM_statistics(DPMs, Labels):
-    shape = DPMs[0].shape[1:]
-    voxel_number = shape[0] * shape[1] * shape[2]
-    TP, FP, TN, FN = np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)
-    for label, DPM in zip(Labels, DPMs):
-        risk_map = get_AD_risk(DPM)
-        if label == 0:
-            TN += (risk_map < 0.5).astype(np.int)
-            FP += (risk_map >= 0.5).astype(np.int)
-        elif label == 1:
-            TP += (risk_map >= 0.5).astype(np.int)
-            FN += (risk_map < 0.5).astype(np.int)
-    tn = float("{0:.2f}".format(np.sum(TN)/voxel_number))
-    fn = float("{0:.2f}".format(np.sum(FN)/voxel_number))
-    tp = float("{0:.2f}".format(np.sum(TP) / voxel_number))
-    fp = float("{0:.2f}".format(np.sum(FP) / voxel_number))
-    matrix = [[tn, fn], [fp, tp]]
-    count = len(Labels)
-    TP, TN, FP, FN = TP.astype(np.float)/count, TN.astype(np.float)/count, FP.astype(np.float)/count, FN.astype(np.float)/count
-    ACCU = TP + TN
-    F1 = 2*TP/(2*TP+FP+FN)
-    MCC = (TP*TN-FP*FN)/(np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))+0.00000001*np.ones(shape))
-    return matrix, ACCU, F1, MCC
 
 
 def timeit(method):
@@ -164,3 +151,30 @@ def timeit(method):
             print('%r  %2.2f ms' % (method.__name__, (te - ts) * 1000))
         return result
     return timed
+
+
+def DPM_statistics(DPMs, Labels):
+    shape = DPMs[0].shape[1:]
+    voxel_number = shape[0] * shape[1] * shape[2]
+    TP, FP, TN, FN = np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)
+    for label, DPM in zip(Labels, DPMs):
+        risk_map = get_AD_risk(DPM)
+        if label == 0:
+            TN += (risk_map < 0.5).astype(np.int)
+            FP += (risk_map >= 0.5).astype(np.int)
+        elif label == 1:
+            TP += (risk_map >= 0.5).astype(np.int)
+            FN += (risk_map < 0.5).astype(np.int)
+    tn = float("{0:.2f}".format(np.sum(TN) / voxel_number))
+    fn = float("{0:.2f}".format(np.sum(FN) / voxel_number))
+    tp = float("{0:.2f}".format(np.sum(TP) / voxel_number))
+    fp = float("{0:.2f}".format(np.sum(FP) / voxel_number))
+    matrix = [[tn, fn], [fp, tp]]
+    count = len(Labels)
+    TP, TN, FP, FN = TP.astype(np.float)/count, TN.astype(np.float)/count, FP.astype(np.float)/count, FN.astype(np.float)/count
+    ACCU = TP + TN
+    F1 = 2*TP/(2*TP+FP+FN)
+    MCC = (TP*TN-FP*FN)/(np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))+0.00000001*np.ones(shape))
+    return matrix, ACCU, F1, MCC
+
+

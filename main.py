@@ -1,6 +1,7 @@
 from utils import read_json, data_split
 from model_wraper import CNN_Wraper, FCN_Wraper
 import torch
+torch.backends.cudnn.benchmark = True
 
 seed = 1000
 config = read_json('./config.json')
@@ -43,7 +44,7 @@ def fcn_main():
         fcn.train(lr     = fcn_setting['learning_rate'],
                   epochs = fcn_setting['train_epochs'])
         fcn.test()
-
+        fcn.gen_DPMs()
 
 
 if __name__ == "__main__":
