@@ -3,10 +3,6 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
-from torch.autograd import Variable
-from utils import read_txt
 import random
 import copy
 
@@ -91,42 +87,43 @@ class _FCN(nn.Module):
 
 
 class _CNN(nn.Module):
-    def __init__(self):
-        super(CNN, self).__init__()
+    def __init__(self, num, p):
+        super(_CNN, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv3d(1, 8, 3, 1, 0),
+            nn.Conv3d(1, num, 3, 1, 0),
             nn.ReLU(),
-            nn.Conv3d(8, 8, 3, 1, 0),
-            nn.ReLU(),
-            nn.MaxPool3d(2, 2, 0),
-
-            nn.Conv3d(8, 16, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(16, 16, 3, 1, 0),
+            nn.Conv3d(num, num, 3, 1, 0),
             nn.ReLU(),
             nn.MaxPool3d(2, 2, 0),
 
-            nn.Conv3d(16, 32, 3, 1, 0),
+            nn.Conv3d(num, 2*num, 3, 1, 0),
             nn.ReLU(),
-            nn.Conv3d(32, 32, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(32, 32, 3, 1, 0),
+            nn.Conv3d(2*num, 2*num, 3, 1, 0),
             nn.ReLU(),
             nn.MaxPool3d(2, 2, 0),
 
-            nn.Conv3d(32, 64, 3, 1, 0),
+            nn.Conv3d(2*num, 4*num, 3, 1, 0),
             nn.ReLU(),
-            nn.Conv3d(64, 64, 3, 1, 0),
+            nn.Conv3d(4*num, 4*num, 3, 1, 0),
             nn.ReLU(),
-            nn.Conv3d(64, 64, 3, 1, 0),
+            nn.Conv3d(4*num, 4*num, 3, 1, 0),
+            nn.ReLU(),
+            nn.MaxPool3d(2, 2, 0),
+
+            nn.Conv3d(4*num, 8*num, 3, 1, 0),
+            nn.ReLU(),
+            nn.Conv3d(8*num, 8*num, 3, 1, 0),
+            nn.ReLU(),
+            nn.Conv3d(8*num, 8*num, 3, 1, 0),
             nn.ReLU(),
             nn.MaxPool3d(2, 2, 0),
         )
+        self.feature_length = 8*num*6*6*8
         self.classifier = nn.Sequential(
-            nn.Linear(64*6*6*8, 128),
+            nn.Linear(8*num*6*6*8, 128),
             nn.ReLU(),
             nn.BatchNorm1d(128),
-            nn.Dropout(0.7),
+            nn.Dropout(p),
             nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, 2),
@@ -134,9 +131,10 @@ class _CNN(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
-        x = x.view(-1, 64*36*8)
+        x = x.view(-1, self.feature_length)
         x = self.classifier(x)
         return x
 
 
 class _MLP(nn.Module):
+    pass

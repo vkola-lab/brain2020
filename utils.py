@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import matplotlib.pyplot as plt
 from numpy import random
 import json
@@ -126,3 +125,7 @@ def data_split(repe_time):
         with open(folder + 'test.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
             wr.writerows(labels + test)
+
+
+def DPM_statistics(DPMs):
+    for 

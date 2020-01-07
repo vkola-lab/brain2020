@@ -38,13 +38,13 @@
         }
     }, 
     "cnn": {
-        "fil_num":              7,
+        "fil_num":              2,
         "drop_rate":            0.5,
         "batch_size":           10,
         "balanced":             1,
         "Data_dir":             "/data/datasets/ADNI_NoBack/",
         "learning_rate":        0.001,
-        "train_epochs":         200
+        "train_epochs":         2
     }
 }
 

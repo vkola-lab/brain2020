@@ -36,7 +36,7 @@ class CNN_Data(Dataset):
     def __init__(self, Data_dir, exp_idx, stage, seed=1000):
         random.seed(seed)
         self.Data_dir = Data_dir
-        self.Data_list, self.Label_list = read_csv('../lookuptxt/exp{}/{}.csv'.format(exp_idx, stage))
+        self.Data_list, self.Label_list = read_csv('./lookupcsv/exp{}/{}.csv'.format(exp_idx, stage))
 
     def __len__(self):
         return len(self.Data_list)
