@@ -76,9 +76,25 @@ class FCN_Data(CNN_Data):
 
 
 class MLP_Data(Dataset):
-    def __init__(self):
-        pass
-
+    def __init__(self, X_bn, X_no_bn, y):
+        self.X_bn = X_bn
+        self.X_no_bn = X_no_bn
+        self.y = y
+    
+    def __len__(self):
+        return len(self.y)
+    
+    def __getitem__(self, idx):
+        X_bn_sample = self.X_bn[idx] if self.X_bn is not None else None
+        X_no_bn_sample = self.X_no_bn[idx] if self.X_no_bn is not None else None
+        y_sample = self.y[idx]
+        return X_bn_sample, X_no_bn_sample, y_sample
+    
+def _MLP_collate_fn(batch):
+    X_bn_batch = np.stack([s[0] for s in batch]) if batch[0][0] is not None else None
+    X_no_bn_batch = np.stack([s[1] for s in batch]) if batch[0][1] is not None else None
+    y_batch = np.stack([s[2] for s in batch])
+    return X_bn_batch, X_no_bn_batch, y_batch
 
 
 if __name__ == "__main__":

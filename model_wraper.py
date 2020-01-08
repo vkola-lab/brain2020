@@ -1,12 +1,13 @@
 import os
-from model import _CNN, _FCN, _CNN
+from model import _CNN, _FCN, _MLP
 from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit, read_csv
-from dataloader import CNN_Data, FCN_Data, MLP_Data
+from dataloader import CNN_Data, FCN_Data, MLP_Data, _MLP_collate_fn
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from tqdm import tqdm
+import numpy as np
 
 """
 model wraper class are defined in this scripts which includes the following methods:
@@ -227,6 +228,45 @@ class FCN_Wraper(CNN_Wraper):
                 DPM = self.fcn(inputs, stage='inference')
                 DPM = DPM.cpu().numpy().squeeze()
                 np.save(self.DPMs_dir + filenames[idx] + '.npy', DPM)
+                
+class MLP_Wrapper():
+    def __init__(self, dim_bn, dim_no_bn, device='cpu', batch_size=10, learning_rate=.01, 
+                 dropout_rate=.5, balance=2.3, hidden_width=64):
+        self.net = _MLP(dropout_rate, hidden_width, dim_bn, dim_no_bn).to(device)
+        self.crit = nn.CrossEntropyLoss(weight=torch.Tensor([1.9, balance])).to(device)
+        self.device = device
+        self.op = optim.Adam(self.net.parameters(), lr=learning_rate)
+        self.bs = batch_size
+    
+    def fit(self, X_bn, X_no_bn, y, n_epoch):
+        self.net.train()
+        data = MLP_Data(X_bn, X_no_bn, y)
+        data_loader = DataLoader(data, batch_size=self.bs, shuffle=True, drop_last=True, collate_fn=_MLP_collate_fn)
+        for epoch in tqdm(range(n_epoch)):
+            cum_loss = 0
+            for X_bn_batch, X_no_bn_batch, y_batch in data_loader:
+                self.net.zero_grad()
+                X_bn_batch = self._to_tensor(X_bn_batch, torch.float32)
+                X_no_bn_batch = self._to_tensor(X_no_bn_batch, torch.float32)
+                y_batch = self._to_tensor(y_batch, torch.long)
+                out = self.net(X_bn_batch, X_no_bn_batch)
+                loss = self.crit(out, y_batch)
+                loss.backward()
+                self.op.step()
+                cum_loss += loss.detach().cpu()
+            print('cum_loss: {}'.format(cum_loss))
+                
+    def eval(self, X_bn, X_no_bn):
+        self.net.eval()
+        with torch.no_grad():
+            X_bn = self._to_tensor(X_bn, torch.float32)
+            X_no_bn = self._to_tensor(X_no_bn, torch.float32)
+            score = self.net(X_bn, X_no_bn).cpu().numpy()
+        return score
+    
+    def _to_tensor(self, ndarray, dtype):
+        tensor = torch.tensor(ndarray, dtype=dtype, device=self.device) if ndarray is not None else None
+        return tensor
 
 
 if __name__ == "__main__":
