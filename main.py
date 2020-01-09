@@ -43,7 +43,7 @@ def fcn_main():
                         metric          = 'accuracy')
         fcn.train(lr     = fcn_setting['learning_rate'],
                   epochs = fcn_setting['train_epochs'])
-        fcn.gen_DPMs()
+        fcn.test_and_generate_DPMs()
 
 
 if __name__ == "__main__":
