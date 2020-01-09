@@ -134,4 +134,25 @@ class _CNN(nn.Module):
 
 
 class _MLP(nn.Module):
-    pass
+    def __init__(self, dr, hw, dim_bn, dim_no_bn):
+        super(_MLP, self).__init__()        
+        self.bn1 = nn.BatchNorm1d(dim_bn) if dim_bn != 0 else None
+        self.fc1 = nn.Linear(dim_no_bn+dim_bn, hw)
+        self.fc2 = nn.Linear(hw, 2)
+        self.do1 = nn.Dropout(dr)
+        self.do2 = nn.Dropout(dr) 
+        self.ac1 = nn.LeakyReLU()
+    
+    def forward(self, X_bn, X_no_bn):
+        if X_bn is None and X_no_bn is not None:
+            X = X_no_bn
+        elif X_bn is not None and X_no_bn is None:
+            X = X_bn
+        else:
+            X = torch.cat((X_no_bn, self.bn1(X_bn)), 1)  
+        out = self.do1(X)
+        out = self.fc1(out)
+        out = self.ac1(out)
+        out = self.do2(out)
+        out = self.fc2(out)
+        return out
