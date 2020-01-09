@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from model import _CNN, _FCN, _CNN
 from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit, read_csv
 from dataloader import CNN_Data, FCN_Data, MLP_Data
