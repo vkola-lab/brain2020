@@ -1,0 +1,44 @@
+{
+    "language"        : "PYTHON",
+    "main-file"       : "fcn_spearmint.py",
+    "experiment-name" : "fcn_tune",
+    "likelihood"      : "GAUSSIAN",
+    "variables" : {
+        "fil_num" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 5,
+            "max"  : 30
+        },
+        "drop_rate" : {
+            "type" : "FLOAT",
+            "size" : 1,
+            "min"  : 0,
+            "max"  : 1
+        },
+        "batch_size" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 2,
+            "max"  : 32
+        },
+        "learning_rate" : {
+            "type" : "FLOAT",
+            "size" : 1,
+            "min"  : 0.0001,
+            "max"  : 0.1
+        },
+        "train_epochs" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 200,
+            "max"  : 3000
+        },
+        "balanced" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 0,
+            "max"  : 1
+        }
+    }
+}

@@ -28,7 +28,6 @@ def cnn_main():
         cnn.test()
     
 def fcn_main():
-    # FCN training and validation
     fcn_setting = config['fcn']
     for exp_idx in range(repe_time):
         fcn = FCN_Wraper(fil_num        = fcn_setting['fil_num'],
@@ -41,8 +40,9 @@ def fcn_main():
                         seed            = seed,
                         model_name      = 'fcn',
                         metric          = 'accuracy')
-        fcn.train(lr     = fcn_setting['learning_rate'],
-                  epochs = fcn_setting['train_epochs'])
+        fcn.optimal_epoch = 1860
+        # fcn.train(lr     = fcn_setting['learning_rate'],
+        #           epochs = fcn_setting['train_epochs'])
         fcn.test_and_generate_DPMs()
 
 

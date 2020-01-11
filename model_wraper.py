@@ -192,10 +192,11 @@ class FCN_Wraper(CNN_Wraper):
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC']:
                 if stage in ['AIBL', 'NACC', 'FHS']:
-                    filenames, _ = read_csv('./lookupcsv/{}.csv'.format(stage))
+                    Data_dir = '/data/datasets/{}/'.format(stage)
                 else:
-                    filenames, _ = read_csv('./lookupcsv/exp{}/{}.csv'.format(self.exp_idx, stage))
-                data = FCN_Data(Data_dir, self.exp_idx, stage='inference', seed=self.seed, patch_size=self.patch_size)
+                    Data_dir = '/data/datasets/ADNI_NoBack/'
+                data = FCN_Data(Data_dir, self.exp_idx, stage=stage, whole_volume=True, seed=self.seed, patch_size=self.patch_size)
+                filenames = data.Data_list
                 dataloader = DataLoader(data, batch_size=1, shuffle=False)
                 DPMs, Labels = [], []
                 for idx, (inputs, labels) in enumerate(dataloader):
@@ -208,7 +209,7 @@ class FCN_Wraper(CNN_Wraper):
                 np.save(self.DPMs_dir + '{}_MCC.npy'.format(stage), MCC)
                 np.save(self.DPMs_dir + '{}_F1.npy'.format(stage),  F1)
                 np.save(self.DPMs_dir + '{}_ACCU.npy'.format(stage), ACCU)  
-                print(stage + ' confusion matrix ' + matrix)
+                print(stage + ' confusion matrix ', matrix)
         print('DPM generation is done')
 
                 

@@ -58,16 +58,17 @@ class CNN_Data(Dataset):
 
 
 class FCN_Data(CNN_Data):
-    def __init__(self, Data_dir, exp_idx, stage, seed=1000, patch_size=47):
-        CNN_Data.__init__(self, Data_dir, exp_idx, stage, seed=1000)
+    def __init__(self, Data_dir, exp_idx, stage, whole_volume=False, seed=1000, patch_size=47):
+        CNN_Data.__init__(self, Data_dir, exp_idx, stage, seed)
         self.stage = stage
+        self.whole = whole_volume
         self.patch_size = patch_size
         self.patch_sampler = PatchGenerator(patch_size=self.patch_size)
 
     def __getitem__(self, idx):
         label = self.Label_list[idx]
         data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
-        if self.stage == 'train':
+        if self.stage == 'train' and not self.whole:
             patch = self.patch_sampler.random_sample(data)
             patch = np.expand_dims(patch, axis=0)
             return patch, label
