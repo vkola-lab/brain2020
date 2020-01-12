@@ -19,7 +19,7 @@ def upsample(heat):
                 new_heat[start_idx1::4, start_idx2::4, start_idx3::4] = heat
     return new_heat[:181, :217, :181]
 
-def plot_heapmap(path)
+def plot_heapmap(path):
     heat_train = upsample(np.load(path + 'train_MCC.npy'))
     heat_valid = upsample(np.load(path + 'valid_MCC.npy'))
     heat_test = upsample(np.load(path + 'test_MCC.npy'))
@@ -41,7 +41,7 @@ def plot_heapmap(path)
     # Add data to image grid
     small = 0.1
 
-    font_dict = {'fontweight': 'bold'}
+    font_dict = {'fontweight': 'bold', 'fontsize': 10}
     titlename = ['Train', 'Valid', 'Test', 'AIBL', 'FHS', 'NACC']
 
     im = grid[0].imshow(MRI[:, :, 40].transpose((1, 0))[::-1, :], cmap = 'gray', vmin=-1, vmax=2.5)
@@ -71,7 +71,6 @@ def plot_heapmap(path)
         l.set_fontsize(11)
 
     fig.savefig('./heatmap.tif', dpi=300)
-
 
 
 if __name__ == '__main__':
