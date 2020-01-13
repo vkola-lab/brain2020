@@ -190,7 +190,7 @@ class FCN_Wraper(CNN_Wraper):
         self.fcn = self.model.dense_to_conv()
         self.fcn.train(False)
         with torch.no_grad():
-            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC']:
+            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
                 if stage in ['AIBL', 'NACC', 'FHS']:
                     Data_dir = '/data/datasets/{}/'.format(stage)
                 else:

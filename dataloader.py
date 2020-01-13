@@ -39,7 +39,7 @@ class CNN_Data(Dataset):
         self.Data_dir = Data_dir
         if stage in ['train', 'valid', 'test']:
             self.Data_list, self.Label_list = read_csv('./lookupcsv/exp{}/{}.csv'.format(exp_idx, stage))
-        elif stage in ['ADNI', 'NACC', 'AIBL']:
+        elif stage in ['ADNI', 'NACC', 'AIBL', 'FHS']:
             self.Data_list, self.Label_list = read_csv('./lookupcsv/{}.csv'.format(stage))
 
     def __len__(self):
@@ -124,7 +124,7 @@ class BuildDF:
                     risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
                     line = list(row.values())[:-1] + [stage] + [risk]
                     table.append(line)
-        for stage in ['NACC', 'AIBL']:
+        for stage in ['NACC', 'AIBL', 'FHS']:
             with open('{}/lookupcsv/{}.csv'.format(tmp, stage), newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
