@@ -32,7 +32,7 @@ class CNN_Wraper:
         self.exp_idx = exp_idx
         self.model_name = model_name
         self.eval_metric = get_accu if metric == 'accuracy' else get_MCC
-        self.model = _CNN(num=fil_num, p=drop_rate).cuda()
+        self.model = _CNN(fil_num=fil_num, drop_rate=drop_rate).cuda()
         self.prepare_dataloader(batch_size, balanced, Data_dir)
         self.checkpoint_dir = './checkpoint_dir/{}_exp{}/'.format(self.model_name, exp_idx)
         if not os.path.exists(self.checkpoint_dir):
@@ -53,19 +53,27 @@ class CNN_Wraper:
         return self.optimal_valid_metric
 
     def test(self):
-        f = open(self.checkpoint_dir + 'raw_score_seed{}'.format(self.seed) + '.txt', 'w')
+        print('testing ... ')
         self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
+        self.model.train(False)
         with torch.no_grad():
-            self.model.train(False)
-            test_matrix = [[0, 0], [0, 0]]
-            for inputs, labels in self.test_dataloader:
-                inputs, labels = inputs.cuda(), labels.cuda()
-                preds = self.model(inputs)
-                write_raw_score(f, preds, labels)
-                test_matrix = matrix_sum(test_matrix, get_confusion_matrix(preds, labels))
-        print('Test confusion matrix:', test_matrix, 'test_metric:', "%.4f" % self.eval_metric(test_matrix))
-        f.close()
-        return self.eval_metric(test_matrix)
+            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                if stage in ['AIBL', 'NACC', 'FHS']:
+                    Data_dir = '/data/datasets/{}_NoBack/'.format(stage)
+                else:
+                    Data_dir = '/data/datasets/ADNI_NoBack/'
+                data = CNN_Data(Data_dir, self.exp_idx, stage=stage, seed=self.seed)
+                dataloader = DataLoader(data, batch_size=10, shuffle=False)
+                f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
+                matrix = [[0, 0], [0, 0]]
+                for idx, (inputs, labels) in enumerate(dataloader):
+                    inputs, labels = inputs.cuda(), labels.cuda()
+                    preds = self.model(inputs)
+                    write_raw_score(f, preds, labels)
+                    matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
+                print(stage + ' confusion matrix ', matrix)
+                f.close()
+        print('DPM generation is done')
 
     def save_checkpoint(self, valid_matrix):
         if self.eval_metric(valid_matrix) >= self.optimal_valid_metric:
@@ -192,7 +200,7 @@ class FCN_Wraper(CNN_Wraper):
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
                 if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = '/data/datasets/{}/'.format(stage)
+                    Data_dir = '/data/datasets/{}_NoBack/'.format(stage)
                 else:
                     Data_dir = '/data/datasets/ADNI_NoBack/'
                 data = FCN_Data(Data_dir, self.exp_idx, stage=stage, whole_volume=True, seed=self.seed, patch_size=self.patch_size)

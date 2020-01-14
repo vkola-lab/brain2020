@@ -8,7 +8,7 @@
         "balanced":             1,
         "Data_dir":             "/data/datasets/ADNI_NoBack/",
         "learning_rate":        0.0001,
-        "train_epochs":         2000
+        "train_epochs":         3000
     },
     "mlp": {
         "__init__": {
@@ -32,13 +32,13 @@
         }
     }, 
     "cnn": {
-        "fil_num":              2,
-        "drop_rate":            0.5,
-        "batch_size":           10,
-        "balanced":             1,
+        "fil_num":              20,
+        "drop_rate":            0.137,
+        "batch_size":           2,
+        "balanced":             0,
         "Data_dir":             "/data/datasets/ADNI_NoBack/",
-        "learning_rate":        0.001,
-        "train_epochs":         2
+        "learning_rate":        0.0001,
+        "train_epochs":         20
     }
 }
 

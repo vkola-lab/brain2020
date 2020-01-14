@@ -21,6 +21,52 @@ models are defined in this scripts:
         
 """
 
+class ConvLayer(nn.Module):
+    def __init__(self, in_channels, out_channels, drop_rate, kernel, pooling, BN=True, relu_type='leaky'):
+        super().__init__()
+        kernel_size, kernel_stride, kernel_padding = kernel
+        pool_kernel, pool_stride, pool_padding = pooling
+        self.conv = nn.Conv3d(in_channels, out_channels, kernel_size, kernel_stride, kernel_padding, bias=False)
+        self.pooling = nn.MaxPool3d(pool_kernel, pool_stride, pool_padding)
+        self.BN = nn.BatchNorm3d(out_channels)
+        self.relu = nn.LeakyReLU() if relu_type=='leaky' else nn.ReLU()
+        self.dropout = nn.Dropout(drop_rate) 
+       
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.pooling(x)
+        x = self.BN(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        return x
+
+
+class _CNN(nn.Module):
+    def __init__(self, fil_num, drop_rate):
+        super(_CNN, self).__init__()
+        self.block1 = ConvLayer(1, fil_num, 0.1, (7, 2, 0), (3, 2, 0))
+        self.block2 = ConvLayer(fil_num, 2*fil_num, 0.1, (4, 1, 0), (2, 2, 0))
+        self.block3 = ConvLayer(2*fil_num, 4*fil_num, 0.1, (3, 1, 0), (2, 2, 0))
+        self.block4 = ConvLayer(4*fil_num, 8*fil_num, 0.1, (3, 1, 0), (2, 1, 0))
+        self.classifier = nn.Sequential(
+            nn.Dropout(drop_rate),
+            nn.Linear(8*fil_num*6*8*6, 30),
+            nn.LeakyReLU(),
+            nn.Dropout(drop_rate),
+            nn.Linear(30, 2),
+        )
+
+    def forward(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        batch_size = x.shape[0]
+        x = x.view(batch_size, -1)
+        x = self.classifier(x)
+        return x
+
+
 class _FCN(nn.Module):
     def __init__(self, num, p):
         super(_FCN, self).__init__()
@@ -82,57 +128,6 @@ class _FCN(nn.Module):
         return fcn
 
 
-
-class _CNN(nn.Module):
-    def __init__(self, num, p):
-        super(_CNN, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv3d(1, num, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(num, num, 3, 1, 0),
-            nn.ReLU(),
-            nn.MaxPool3d(2, 2, 0),
-
-            nn.Conv3d(num, 2*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(2*num, 2*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.MaxPool3d(2, 2, 0),
-
-            nn.Conv3d(2*num, 4*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(4*num, 4*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(4*num, 4*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.MaxPool3d(2, 2, 0),
-
-            nn.Conv3d(4*num, 8*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(8*num, 8*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.Conv3d(8*num, 8*num, 3, 1, 0),
-            nn.ReLU(),
-            nn.MaxPool3d(2, 2, 0),
-        )
-        self.feature_length = 8*num*6*6*8
-        self.classifier = nn.Sequential(
-            nn.Linear(8*num*6*6*8, 128),
-            nn.ReLU(),
-            nn.BatchNorm1d(128),
-            nn.Dropout(p),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 2),
-        )
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(-1, self.feature_length)
-        x = self.classifier(x)
-        return x
-
-
 class _MLP(nn.Module):
     def __init__(self, dr, hw, dim_bn, dim_no_bn):
         super(_MLP, self).__init__()        
@@ -156,3 +151,5 @@ class _MLP(nn.Module):
         out = self.do2(out)
         out = self.fc2(out)
         return out
+
+        

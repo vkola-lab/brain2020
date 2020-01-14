@@ -102,7 +102,7 @@ class BuildDF:
     def __init__(self, exp_idx, roi_thrshold=0.6):
         self.roi_thrshold = roi_thrshold
         self.exp_idx = exp_idx
-#        self.select_roi()
+        self.select_roi()
         
     def select_roi(self):
         self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
@@ -121,61 +121,29 @@ class BuildDF:
             with open('{}/lookupcsv/exp{}/{}.csv'.format(tmp, self.exp_idx, stage), newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
-                    risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
-                    line = list(row.values())[:-1] + [stage] + [risk]
+                    #risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
+                    risk = None
+                    line = list(row.values()) + [stage] + [risk]
                     table.append(line)
-        for stage in ['NACC', 'AIBL', 'FHS']:
+        for stage in ['NACC', 'AIBL']:
             with open('{}/lookupcsv/{}.csv'.format(tmp, stage), newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
-                    risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
-                    line = list(row.values())[:-1] + [stage] + [risk]
+                    #risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
+                    risk = None
+                    line = list(row.values()) + [stage] + [risk]
                     table.append(line)
-        self.df = pd.DataFrame(table, columns = ['filename', 'label', 'age', 'gender', 'mmse', 'apoe', 'X_ravlt_lrn', 'X_ravlt_fgt', 'X_ravlt_pfgt', 'dataset', 'riskmap'])
+        self.df = pd.DataFrame(table, columns = ['filename', 'label', 'age', 'gender', 'mmse', 'apoe', 'ravlt_lrn', 'ravlt_fgt', 'ravlt_pfgt', 'dataset', 'riskmap'])
             
-        # AD, NL to 0, 1
-#        for i in range(len(self.df)):
-#            self.df.loc[i, 'label'] = label_dict[self.df.loc[i, 'label']]
-#            
-#        if fn_3T:
-#            self._load_3T(fn_3T, roi)
-#            
-#        if longitudinal:
-#            self._load_longitudinal()
-            
-    def _load_3T(self, fn, roi):
-        with open(fn) as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for i, r in enumerate(csv_reader):
-                if i == 0:
-                    continue
-                pid = r[1]
-                rmap_1T = np.load('../ADNI_overlap/Risk_ADNI_{}.npy'.format(pid))[roi]
-                rmap_3T = np.load('../ADNI_3T_overlap/Risk_ADNI_3T_{}.npy'.format(pid))[roi]
-                age = [float(r[5])]
-                label = 1 if r[2] == 'AD' else 0
-                mmse = [float(r[6])]
-                gender = [1., 0.] if r[7] == '2' else [0., 1.]
-                
-                row_1T = ['ADNI_1.5T', rmap_1T, age, mmse, gender, label,
-                          None, None, None, None, None, None, None]
-                row_3T = ['ADNI_3.0T', rmap_3T, age, mmse, gender, label,
-                          None, None, None, None, None, None, None]
-                self.df.loc[len(self.df)] = row_1T
-                self.df.loc[len(self.df)] = row_3T
-    
-    def _load_longitudinal(self):
-        self.df = self.df[(self.df.dataset == 'ADNI_TEST') | (self.df.dataset == 'ADNI_TRAIN')]
-        with open('../ADNI_Risk/ADNI_Longi_label.txt') as f:
-            labels = [l.strip('\n') for l in f]
-        labels = [int(e) if e in ['0', '1'] else -1 for e in labels]
-        self.df['long_label'] = labels
-        self.df = self.df[self.df.long_label != -1]
+        # AD, NL to 1, 0
+        label_dict = {'AD':1, 'NL':0}
+        for i in range(len(self.df)):
+            self.df.loc[i, 'label'] = label_dict[self.df.loc[i, 'label']]
     
     def get_ndarray(self, cols, longitudinal=False):
         dset_names = self.df.dataset.unique().tolist()
-        cols_bn = sorted(list(set(cols) & {'X_age', 'X_mmse', 'X_ravlt_lrn', 'X_ravlt_fgt', 'X_ravlt_pfgt'}))
-        cols_no_bn = sorted(list(set(cols) & {'X_rmap', 'X_gender', 'X_apoe', 'X_cnn'}))
+        cols_bn = sorted(list(set(cols) & {'age', 'mmse', 'ravlt_lrn', 'ravlt_fgt', 'ravlt_pfgt'}))
+        cols_no_bn = sorted(list(set(cols) & {'riskmap', 'gender', 'apoe'}))
         X_bn, X_no_bn, y = {}, {}, {}
         for ds in dset_names:
             # X that needs to be batch-normalized
@@ -216,20 +184,6 @@ class BuildDF:
                 print('\t{}: {}/{}'.format(k, v, v))
 
 
-class LongitudinalDataWrapper():
-    def __init__(self):
-        self.df = pd.DataFrame(columns = ['dataset', 'X_rmap', 'X_age', 'X_mmse', 'X_gender', 'label', 'point', 'id', 'X_apoe', 'X_ravlt_lrn', 'X_ravlt_fgt', 'X_ravlt_pfgt', 'X_cnn'])
-
-def select_roi(roi_src_fn, roi_thrshold=0.6):
-    roi = np.load(roi_src_fn)
-    roi = roi > roi_thrshold
-    for i in range(roi.shape[0]):
-        for j in range(roi.shape[1]):
-            for k in range(roi.shape[2]):
-                if i%3!=0 or j%2!=0 or k%3!=0:
-                    roi[i,j,k] = False
-    return roi
-
 def load_neurologist_data(fn):
     with open(fn, 'r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -245,7 +199,9 @@ def load_neurologist_data(fn):
 
 
 if __name__ == "__main__":
-    pass
+    dw = BuildDF(exp_idx=0)
+    dw.load()
+    print(dw.df)
 #    dataset = CNN_Data(Data_dir='/data/datasets/ADNI_NoBack/', stage='train')
 #    for i in range(len(dataset)):
 #        scan, label = dataset[i]
