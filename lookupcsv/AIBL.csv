@@ -1,4 +1,4 @@
-filename,status,age,gender,mmse,apoe,,,
+filename,status,age,gender,mmse,apoe,ravlt_lrn,ravlt_fgt,ravlt_pfgt
 814,NL,82,1,29,0,,,
 1303,NL,74,1,29,0,,,
 270,NL,66,2,27,0,,,
