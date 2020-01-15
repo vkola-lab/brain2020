@@ -1,8 +1,8 @@
 import os
 import numpy as np
-from model import _CNN, _FCN, _MLP
+from model import _CNN, _FCN, _MLP_A
 from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit, read_csv
-from dataloader import CNN_Data, FCN_Data, MLP_Data, _MLP_collate_fn
+from dataloader import CNN_Data, FCN_Data, MLP_Data, MLP_Data1, _MLP_collate_fn
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -73,7 +73,6 @@ class CNN_Wraper:
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
                 print(stage + ' confusion matrix ', matrix)
                 f.close()
-        print('DPM generation is done')
 
     def save_checkpoint(self, valid_matrix):
         if self.eval_metric(valid_matrix) >= self.optimal_valid_metric:
@@ -219,6 +218,79 @@ class FCN_Wraper(CNN_Wraper):
                 np.save(self.DPMs_dir + '{}_ACCU.npy'.format(stage), ACCU)  
                 print(stage + ' confusion matrix ', matrix)
         print('DPM generation is done')
+
+
+class MLP_Wrapper_A(CNN_Wraper):
+    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold):
+        self.seed = seed
+        self.exp_idx = exp_idx
+        self.model_name = model_name
+        self.roi_threshold = roi_threshold
+        self.eval_metric = get_accu if metric == 'accuracy' else get_MCC
+        self.checkpoint_dir = './checkpoint_dir/{}_exp{}/'.format(self.model_name, exp_idx)
+        if not os.path.exists(self.checkpoint_dir):
+            os.mkdir(self.checkpoint_dir)
+        self.Data_dir = './DPMs/fcn_exp{}/'.format(exp_idx)
+        self.prepare_dataloader(batch_size, balanced, self.Data_dir)
+        self.model = _MLP_A(in_size=self.in_size, fil_num=fil_num, drop_rate=drop_rate).cuda()
+
+    def prepare_dataloader(self, batch_size, balanced, Data_dir):
+        train_data = MLP_Data1(Data_dir, self.exp_idx, stage='train', roi_threshold=self.roi_threshold, seed=self.seed)
+        valid_data = MLP_Data1(Data_dir, self.exp_idx, stage='valid', roi_threshold=self.roi_threshold, seed=self.seed)
+        test_data  = MLP_Data1(Data_dir, self.exp_idx, stage='test', roi_threshold=self.roi_threshold, seed=self.seed)
+        sample_weight, self.imbalanced_ratio = train_data.get_sample_weights()
+        # the following if else blocks represent two ways of handling class imbalance issue
+        if balanced == 1:
+            # use pytorch sampler to sample data with probability according to the count of each class
+            # so that each mini-batch has the same expectation counts of samples from each class
+            sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weight, len(sample_weight))
+            self.train_dataloader = DataLoader(train_data, batch_size=batch_size, sampler=sampler)
+            self.imbalanced_ratio = 1
+        elif balanced == 0:
+            # sample data from the same probability, but
+            # self.imbalanced_ratio will be used in the weighted cross entropy loss to handle imbalanced issue
+            self.train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
+        self.valid_dataloader = DataLoader(valid_data, batch_size=1, shuffle=False)
+        self.test_dataloader = DataLoader(test_data, batch_size=1, shuffle=False)
+        self.in_size = train_data.in_size
+    
+    def train_model_epoch(self):
+        self.model.train(True)
+        for inputs, labels, _ in self.train_dataloader:
+            inputs, labels = inputs.cuda(), labels.cuda()
+            self.model.zero_grad()
+            preds = self.model(inputs)
+            loss = self.criterion(preds, labels)
+            loss.backward()
+            self.optimizer.step()
+
+    def valid_model_epoch(self):
+        with torch.no_grad():
+            self.model.train(False)
+            valid_matrix = [[0, 0], [0, 0]]
+            for inputs, labels, _ in self.valid_dataloader:
+                inputs, labels = inputs.cuda(), labels.cuda()
+                preds = self.model(inputs)
+                valid_matrix = matrix_sum(valid_matrix, get_confusion_matrix(preds, labels))
+        return valid_matrix
+
+    def test(self):
+        print('testing ... ')
+        self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
+        self.model.train(False)
+        with torch.no_grad():
+            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                data = MLP_Data1(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
+                dataloader = DataLoader(data, batch_size=10, shuffle=False)
+                f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
+                matrix = [[0, 0], [0, 0]]
+                for idx, (inputs, labels, _) in enumerate(dataloader):
+                    inputs, labels = inputs.cuda(), labels.cuda()
+                    preds = self.model(inputs)
+                    write_raw_score(f, preds, labels)
+                    matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
+                print(stage + ' confusion matrix ', matrix)
+                f.close()
 
                 
 class MLP_Wrapper():

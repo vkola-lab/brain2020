@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from utils import PatchGenerator, padding, read_csv, get_AD_risk
+from utils import PatchGenerator, padding, read_csv, read_csv_complete, get_AD_risk
 import random
 import pandas as pd
 import csv
@@ -77,6 +77,45 @@ class FCN_Data(CNN_Data):
             return data, label
 
 
+class MLP_Data1(Dataset):
+    def __init__(self, Data_dir, exp_idx, stage, roi_threshold, seed=1000):
+        random.seed(seed)
+        self.exp_idx = exp_idx
+        self.Data_dir = Data_dir
+        self.roi_threshold = roi_threshold
+        self.select_roi()
+        if stage in ['train', 'valid', 'test']:
+            path = './lookupcsv/exp{}/{}.csv'.format(exp_idx, stage)
+        else:
+            path = './lookupcsv/{}.csv'.format(stage)
+        self.Data_list, self.Label_list, self.demor_list = read_csv_complete(path)
+        self.risk_list = [get_AD_risk(np.load(Data_dir+filename+'.npy'))[self.roi] for filename in self.Data_list]
+        self.in_size = self.risk_list[0].shape[0]
+        
+    def select_roi(self):
+        self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
+        self.roi = self.roi > self.roi_threshold
+        for i in range(self.roi.shape[0]):
+            for j in range(self.roi.shape[1]):
+                for k in range(self.roi.shape[2]):
+                    if i%3!=0 or j%2!=0 or k%3!=0:
+                        self.roi[i,j,k] = False
+
+    def __len__(self):
+        return len(self.Data_list)
+
+    def __getitem__(self, idx):
+        label = self.Label_list[idx]
+        risk = self.risk_list[idx]
+        demor = self.demor_list[idx]
+        return risk, label, np.asarray(demor)
+
+    def get_sample_weights(self):
+        count, count0, count1 = float(len(self.Label_list)), float(self.Label_list.count(0)), float(self.Label_list.count(1))
+        weights = [count / count0 if i == 0 else count / count1 for i in self.Label_list]
+        return weights, count0 / count1
+
+
 class MLP_Data(Dataset):
     def __init__(self, X_bn, X_no_bn, y):
         self.X_bn = X_bn
@@ -125,7 +164,7 @@ class BuildDF:
                     risk = None
                     line = list(row.values()) + [stage] + [risk]
                     table.append(line)
-        for stage in ['NACC', 'AIBL']:
+        for stage in ['NACC', 'AIBL', 'FHS']:
             with open('{}/lookupcsv/{}.csv'.format(tmp, stage), newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
@@ -199,10 +238,7 @@ def load_neurologist_data(fn):
 
 
 if __name__ == "__main__":
-    dw = BuildDF(exp_idx=0)
-    dw.load()
-    print(dw.df)
-#    dataset = CNN_Data(Data_dir='/data/datasets/ADNI_NoBack/', stage='train')
-#    for i in range(len(dataset)):
-#        scan, label = dataset[i]
-#        print(scan.shape, label.shape)
+    data = MLP_Data1(Data_dir='./DPMs/fcn_exp1/', exp_idx=1, stage='train', roi_threshold=0.6)
+    dataloader = DataLoader(data, batch_size=10, shuffle=False)
+    for risk, label, demor in dataloader:
+        print(risk.shape, label, demor)

@@ -86,13 +86,10 @@ def softmax(x1, x2):
 
 
 def get_AD_risk(raw):
-    a, x, y, z = raw.shape
-    risk = np.zeros((x, y, z))
-    for i in range(x):
-        for j in range(y):
-            for k in range(z):
-                risk[i, j, k] = softmax(raw[0, i, j, k], raw[1, i, j, k])
+    x1, x2 = raw[0, :, :, :], raw[1, :, :, :]
+    risk = np.exp(x2) / (np.exp(x1) + np.exp(x2))
     return risk
+
 
 def read_json(config_file):
     with open(config_file) as config_buffer:
@@ -116,6 +113,16 @@ def read_csv(filename):
     filenames = [a[0] for a in your_list[1:]]
     labels = [0 if a[1]=='NL' else 1 for a in your_list[1:]]
     return filenames, labels
+
+
+def read_csv_complete(filename):
+    with open(filename, 'r') as f:
+        reader = csv.reader(f)
+        your_list = list(reader)
+    filenames = [a[0] for a in your_list[1:]]
+    labels = [0 if a[1]=='NL' else 1 for a in your_list[1:]]
+    demors = [list(map(float, a[2:6])) for a in your_list[1:]]
+    return filenames, labels, demors
 
 
 def data_split(repe_time):

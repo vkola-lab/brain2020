@@ -1,5 +1,5 @@
 {
-    "repeat_time":              1,
+    "repeat_time":              5,
     "fcn":{
         "fil_num":              20,
         "drop_rate":            0.5,
@@ -11,6 +11,13 @@
         "train_epochs":         3000
     },
     "mlp": {
+        "fil_num":              20,
+        "drop_rate":            0.5,
+        "batch_size":           10,
+        "balanced":             1,
+        "roi_threshold":        0.6,
+        "learning_rate":        0.0001,
+        "train_epochs":         400,
         "__init__": {
             "hmap_fn":              "./dpm_statistics/ADNI/MCC.npy",
             "features":             ["rmap"],
@@ -38,7 +45,7 @@
         "balanced":             0,
         "Data_dir":             "/data/datasets/ADNI_NoBack/",
         "learning_rate":        0.0001,
-        "train_epochs":         20
+        "train_epochs":         200
     }
 }
 

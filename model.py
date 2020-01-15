@@ -128,6 +128,23 @@ class _FCN(nn.Module):
         return fcn
 
 
+class _MLP_A(nn.Module):
+    def __init__(self, in_size, drop_rate, fil_num):
+        super(_MLP_A, self).__init__()        
+        self.fc1 = nn.Linear(in_size, fil_num)
+        self.fc2 = nn.Linear(fil_num, 2)
+        self.do1 = nn.Dropout(drop_rate)
+        self.do2 = nn.Dropout(drop_rate) 
+        self.ac1 = nn.LeakyReLU()
+    
+    def forward(self, X):
+        out = self.do1(X)
+        out = self.fc1(out)
+        out = self.ac1(out)
+        out = self.do2(out)
+        out = self.fc2(out)
+        return out
+
 class _MLP(nn.Module):
     def __init__(self, dr, hw, dim_bn, dim_no_bn):
         super(_MLP, self).__init__()        
@@ -152,4 +169,3 @@ class _MLP(nn.Module):
         out = self.fc2(out)
         return out
 
-        

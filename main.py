@@ -1,5 +1,5 @@
 from utils import read_json, data_split
-from model_wraper import CNN_Wraper, FCN_Wraper
+from model_wraper import CNN_Wraper, FCN_Wraper, MLP_Wrapper_A
 import torch
 torch.backends.cudnn.benchmark = True
 
@@ -30,6 +30,7 @@ def cnn_main():
 def fcn_main():
     fcn_setting = config['fcn']
     for exp_idx in range(repe_time):
+        exp_idx += 1
         fcn = FCN_Wraper(fil_num        = fcn_setting['fil_num'],
                         drop_rate       = fcn_setting['drop_rate'],
                         batch_size      = fcn_setting['batch_size'],
@@ -40,15 +41,32 @@ def fcn_main():
                         seed            = seed,
                         model_name      = 'fcn',
                         metric          = 'accuracy')
-        fcn.optimal_epoch = 1860
-        # fcn.train(lr     = fcn_setting['learning_rate'],
-        #           epochs = fcn_setting['train_epochs'])
+        # fcn.optimal_epoch = 0
+        fcn.train(lr     = fcn_setting['learning_rate'],
+                  epochs = fcn_setting['train_epochs'])
         fcn.test_and_generate_DPMs()
 
 
+def mlp_main():
+    mlp_setting = config['mlp']
+    for exp_idx in range(repe_time):
+        mlp = MLP_Wrapper_A(fil_num         = mlp_setting['fil_num'],
+                            drop_rate       = mlp_setting['drop_rate'],
+                            batch_size      = mlp_setting['batch_size'],
+                            balanced        = mlp_setting['balanced'],
+                            roi_threshold   = mlp_setting['roi_threshold'],
+                            exp_idx         = 1,
+                            seed            = seed,
+                            model_name      = 'mlp_A',
+                            metric          = 'accuracy')
+        mlp.train(lr     = mlp_setting['learning_rate'],
+                  epochs = mlp_setting['train_epochs'])
+        mlp.test()
+
 if __name__ == "__main__":
-    with torch.cuda.device(3):
-        fcn_main()
+    with torch.cuda.device(1):
+        mlp_main()
+
 
 
 
