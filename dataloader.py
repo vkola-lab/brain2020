@@ -108,7 +108,7 @@ class MLP_Data1(Dataset):
         label = self.Label_list[idx]
         risk = self.risk_list[idx]
         demor = self.demor_list[idx]
-        return risk, label, np.asarray(demor)
+        return risk, label, np.asarray(demor).astype(np.float32)
 
     def get_sample_weights(self):
         count, count0, count1 = float(len(self.Label_list)), float(self.Label_list.count(0)), float(self.Label_list.count(1))

@@ -81,10 +81,6 @@ def get_MCC(matrix):
     return upper / (lower**0.5 + 0.000000001)
 
 
-def softmax(x1, x2):
-    return np.exp(x2) / (np.exp(x1) + np.exp(x2))
-
-
 def get_AD_risk(raw):
     x1, x2 = raw[0, :, :, :], raw[1, :, :, :]
     risk = np.exp(x2) / (np.exp(x1) + np.exp(x2))
@@ -119,9 +115,18 @@ def read_csv_complete(filename):
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
-    filenames = [a[0] for a in your_list[1:]]
-    labels = [0 if a[1]=='NL' else 1 for a in your_list[1:]]
-    demors = [list(map(float, a[2:6])) for a in your_list[1:]]
+    filenames, labels, demors = [], [], []
+    for line in your_list:
+        try:
+            demor = list(map(float, line[2:6]))
+            gender = [0, 1] if demor[1] == 1 else [1, 0]
+            demor = demor[:1] + gender + demor[2:] 
+        except:
+            continue
+        filenames.append(line[0])
+        label = 0 if line[1]=='NL' else 1
+        labels.append(label)
+        demors.append(demor)
     return filenames, labels, demors
 
 

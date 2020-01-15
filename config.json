@@ -1,5 +1,5 @@
 {
-    "repeat_time":              5,
+    "repeat_time":              1,
     "fcn":{
         "fil_num":              20,
         "drop_rate":            0.5,
@@ -15,7 +15,7 @@
         "drop_rate":            0.5,
         "batch_size":           10,
         "balanced":             1,
-        "roi_threshold":        0.6,
+        "roi_threshold":        0.5,
         "learning_rate":        0.0001,
         "train_epochs":         400,
         "__init__": {

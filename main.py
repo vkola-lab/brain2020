@@ -1,5 +1,5 @@
 from utils import read_json, data_split
-from model_wraper import CNN_Wraper, FCN_Wraper, MLP_Wrapper_A
+from model_wraper import CNN_Wraper, FCN_Wraper, MLP_Wrapper_A, MLP_Wrapper_B, MLP_Wrapper_C
 import torch
 torch.backends.cudnn.benchmark = True
 
@@ -47,7 +47,7 @@ def fcn_main():
         fcn.test_and_generate_DPMs()
 
 
-def mlp_main():
+def mlp_A_main():
     mlp_setting = config['mlp']
     for exp_idx in range(repe_time):
         mlp = MLP_Wrapper_A(fil_num         = mlp_setting['fil_num'],
@@ -63,9 +63,44 @@ def mlp_main():
                   epochs = mlp_setting['train_epochs'])
         mlp.test()
 
+
+def mlp_B_main():
+    mlp_setting = config['mlp']
+    for exp_idx in range(repe_time):
+        mlp = MLP_Wrapper_B(fil_num         = mlp_setting['fil_num'],
+                            drop_rate       = mlp_setting['drop_rate'],
+                            batch_size      = mlp_setting['batch_size'],
+                            balanced        = mlp_setting['balanced'],
+                            roi_threshold   = mlp_setting['roi_threshold'],
+                            exp_idx         = 1,
+                            seed            = seed,
+                            model_name      = 'mlp_B',
+                            metric          = 'accuracy')
+        mlp.train(lr     = mlp_setting['learning_rate'],
+                  epochs = mlp_setting['train_epochs'])
+        mlp.test()
+
+
+def mlp_C_main():
+    mlp_setting = config['mlp']
+    for exp_idx in range(repe_time):
+        mlp = MLP_Wrapper_C(fil_num         = mlp_setting['fil_num'],
+                            drop_rate       = mlp_setting['drop_rate'],
+                            batch_size      = mlp_setting['batch_size'],
+                            balanced        = mlp_setting['balanced'],
+                            roi_threshold   = mlp_setting['roi_threshold'],
+                            exp_idx         = 1,
+                            seed            = seed,
+                            model_name      = 'mlp_C',
+                            metric          = 'accuracy')
+        mlp.train(lr     = mlp_setting['learning_rate'],
+                  epochs = mlp_setting['train_epochs'])
+        mlp.test()
+
+
 if __name__ == "__main__":
     with torch.cuda.device(1):
-        mlp_main()
+        mlp_C_main()
 
 
 

@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from model import _CNN, _FCN, _MLP_A
+from model import _CNN, _FCN, _MLP_A, _MLP_B, _MLP_C
 from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit, read_csv
 from dataloader import CNN_Data, FCN_Data, MLP_Data, MLP_Data1, _MLP_collate_fn
 import torch
@@ -292,7 +292,95 @@ class MLP_Wrapper_A(CNN_Wraper):
                 print(stage + ' confusion matrix ', matrix)
                 f.close()
 
-                
+
+class MLP_Wrapper_B(MLP_Wrapper_A):
+    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold):
+        super().__init__(fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold)
+        self.model = _MLP_B(in_size=5, fil_num=fil_num, drop_rate=drop_rate).cuda()
+    
+    def train_model_epoch(self):
+        self.model.train(True)
+        for _, labels, inputs in self.train_dataloader:
+            inputs, labels = inputs.cuda(), labels.cuda()
+            self.model.zero_grad()
+            preds = self.model(inputs)
+            loss = self.criterion(preds, labels)
+            loss.backward()
+            self.optimizer.step()
+
+    def valid_model_epoch(self):
+        with torch.no_grad():
+            self.model.train(False)
+            valid_matrix = [[0, 0], [0, 0]]
+            for _, labels, inputs in self.valid_dataloader:
+                inputs, labels = inputs.cuda(), labels.cuda()
+                preds = self.model(inputs)
+                valid_matrix = matrix_sum(valid_matrix, get_confusion_matrix(preds, labels))
+        return valid_matrix
+
+    def test(self):
+        print('testing ... ')
+        self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
+        self.model.train(False)
+        with torch.no_grad():
+            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                data = MLP_Data1(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
+                dataloader = DataLoader(data, batch_size=10, shuffle=False)
+                f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
+                matrix = [[0, 0], [0, 0]]
+                for idx, (_, labels, inputs) in enumerate(dataloader):
+                    inputs, labels = inputs.cuda(), labels.cuda()
+                    preds = self.model(inputs)
+                    write_raw_score(f, preds, labels)
+                    matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
+                print(stage + ' confusion matrix ', matrix)
+                f.close()
+
+
+class MLP_Wrapper_C(MLP_Wrapper_A):
+    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold):
+        super().__init__(fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold)
+        self.model = _MLP_C(in_size=self.in_size+5, fil_num=fil_num, drop_rate=drop_rate).cuda()
+    
+    def train_model_epoch(self):
+        self.model.train(True)
+        for inputs, labels, demors in self.train_dataloader:
+            inputs, labels, demors = inputs.cuda(), labels.cuda(), demors.cuda()
+            self.model.zero_grad()
+            preds = self.model(inputs, demors)
+            loss = self.criterion(preds, labels)
+            loss.backward()
+            self.optimizer.step()
+
+    def valid_model_epoch(self):
+        with torch.no_grad():
+            self.model.train(False)
+            valid_matrix = [[0, 0], [0, 0]]
+            for inputs, labels, demors in self.train_dataloader:
+                inputs, labels, demors = inputs.cuda(), labels.cuda(), demors.cuda()
+                preds = self.model(inputs, demors)
+                valid_matrix = matrix_sum(valid_matrix, get_confusion_matrix(preds, labels))
+        return valid_matrix
+
+    def test(self):
+        print('testing ... ')
+        self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
+        self.model.train(False)
+        with torch.no_grad():
+            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                data = MLP_Data1(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
+                dataloader = DataLoader(data, batch_size=10, shuffle=False)
+                f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
+                matrix = [[0, 0], [0, 0]]
+                for idx, (inputs, labels, demors) in enumerate(dataloader):
+                    inputs, labels, demors = inputs.cuda(), labels.cuda(), demors.cuda()
+                    preds = self.model(inputs, demors)
+                    write_raw_score(f, preds, labels)
+                    matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
+                print(stage + ' confusion matrix ', matrix)
+                f.close()
+
+
 class MLP_Wrapper():
     def __init__(self, dim_bn, dim_no_bn, device='cpu', batch_size=10, learning_rate=.01, 
                  dropout_rate=.5, balance=2.3, hidden_width=64):
