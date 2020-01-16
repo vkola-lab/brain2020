@@ -2,7 +2,7 @@ import os
 import numpy as np
 from model import _CNN, _FCN, _MLP_A, _MLP_B, _MLP_C
 from utils import matrix_sum, get_accu, get_MCC, get_confusion_matrix, write_raw_score, DPM_statistics, timeit, read_csv
-from dataloader import CNN_Data, FCN_Data, MLP_Data, MLP_Data1, _MLP_collate_fn
+from dataloader import CNN_Data, FCN_Data, MLP_Data
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -47,7 +47,7 @@ class CNN_Wraper:
         for self.epoch in range(epochs):
             self.train_model_epoch()
             valid_matrix = self.valid_model_epoch()
-            print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
+            #print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
             self.save_checkpoint(valid_matrix)
         print('Best model saved at the {}th epoch:'.format(self.optimal_epoch), self.optimal_valid_metric, self.optimal_valid_matrix)
         return self.optimal_valid_metric
@@ -71,7 +71,7 @@ class CNN_Wraper:
                     preds = self.model(inputs)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix)
+                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
 
     def save_checkpoint(self, valid_matrix):
@@ -216,7 +216,7 @@ class FCN_Wraper(CNN_Wraper):
                 np.save(self.DPMs_dir + '{}_MCC.npy'.format(stage), MCC)
                 np.save(self.DPMs_dir + '{}_F1.npy'.format(stage),  F1)
                 np.save(self.DPMs_dir + '{}_ACCU.npy'.format(stage), ACCU)  
-                print(stage + ' confusion matrix ', matrix)
+                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
         print('DPM generation is done')
 
 
@@ -235,9 +235,9 @@ class MLP_Wrapper_A(CNN_Wraper):
         self.model = _MLP_A(in_size=self.in_size, fil_num=fil_num, drop_rate=drop_rate).cuda()
 
     def prepare_dataloader(self, batch_size, balanced, Data_dir):
-        train_data = MLP_Data1(Data_dir, self.exp_idx, stage='train', roi_threshold=self.roi_threshold, seed=self.seed)
-        valid_data = MLP_Data1(Data_dir, self.exp_idx, stage='valid', roi_threshold=self.roi_threshold, seed=self.seed)
-        test_data  = MLP_Data1(Data_dir, self.exp_idx, stage='test', roi_threshold=self.roi_threshold, seed=self.seed)
+        train_data = MLP_Data(Data_dir, self.exp_idx, stage='train', roi_threshold=self.roi_threshold, seed=self.seed)
+        valid_data = MLP_Data(Data_dir, self.exp_idx, stage='valid', roi_threshold=self.roi_threshold, seed=self.seed)
+        test_data  = MLP_Data(Data_dir, self.exp_idx, stage='test', roi_threshold=self.roi_threshold, seed=self.seed)
         sample_weight, self.imbalanced_ratio = train_data.get_sample_weights()
         # the following if else blocks represent two ways of handling class imbalance issue
         if balanced == 1:
@@ -280,7 +280,7 @@ class MLP_Wrapper_A(CNN_Wraper):
         self.model.train(False)
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
-                data = MLP_Data1(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
+                data = MLP_Data(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
                 dataloader = DataLoader(data, batch_size=10, shuffle=False)
                 f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
                 matrix = [[0, 0], [0, 0]]
@@ -289,7 +289,7 @@ class MLP_Wrapper_A(CNN_Wraper):
                     preds = self.model(inputs)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix)
+                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
 
 
@@ -324,7 +324,7 @@ class MLP_Wrapper_B(MLP_Wrapper_A):
         self.model.train(False)
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
-                data = MLP_Data1(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
+                data = MLP_Data(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
                 dataloader = DataLoader(data, batch_size=10, shuffle=False)
                 f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
                 matrix = [[0, 0], [0, 0]]
@@ -333,7 +333,7 @@ class MLP_Wrapper_B(MLP_Wrapper_A):
                     preds = self.model(inputs)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix)
+                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
 
 
@@ -368,7 +368,7 @@ class MLP_Wrapper_C(MLP_Wrapper_A):
         self.model.train(False)
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
-                data = MLP_Data1(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
+                data = MLP_Data(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
                 dataloader = DataLoader(data, batch_size=10, shuffle=False)
                 f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
                 matrix = [[0, 0], [0, 0]]
@@ -377,48 +377,8 @@ class MLP_Wrapper_C(MLP_Wrapper_A):
                     preds = self.model(inputs, demors)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix)
+                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
-
-
-class MLP_Wrapper():
-    def __init__(self, dim_bn, dim_no_bn, device='cpu', batch_size=10, learning_rate=.01, 
-                 dropout_rate=.5, balance=2.3, hidden_width=64):
-        self.net = _MLP(dropout_rate, hidden_width, dim_bn, dim_no_bn).to(device)
-        self.crit = nn.CrossEntropyLoss(weight=torch.Tensor([1.9, balance])).to(device)
-        self.device = device
-        self.op = optim.Adam(self.net.parameters(), lr=learning_rate)
-        self.bs = batch_size
-    
-    def fit(self, X_bn, X_no_bn, y, n_epoch):
-        self.net.train()
-        data = MLP_Data(X_bn, X_no_bn, y)
-        data_loader = DataLoader(data, batch_size=self.bs, shuffle=True, drop_last=True, collate_fn=_MLP_collate_fn)
-        for epoch in tqdm(range(n_epoch)):
-            cum_loss = 0
-            for X_bn_batch, X_no_bn_batch, y_batch in data_loader:
-                self.net.zero_grad()
-                X_bn_batch = self._to_tensor(X_bn_batch, torch.float32)
-                X_no_bn_batch = self._to_tensor(X_no_bn_batch, torch.float32)
-                y_batch = self._to_tensor(y_batch, torch.long)
-                out = self.net(X_bn_batch, X_no_bn_batch)
-                loss = self.crit(out, y_batch)
-                loss.backward()
-                self.op.step()
-                cum_loss += loss.detach().cpu()
-            print('cum_loss: {}'.format(cum_loss))
-                
-    def eval(self, X_bn, X_no_bn):
-        self.net.eval()
-        with torch.no_grad():
-            X_bn = self._to_tensor(X_bn, torch.float32)
-            X_no_bn = self._to_tensor(X_no_bn, torch.float32)
-            score = self.net(X_bn, X_no_bn).cpu().numpy()
-        return score
-    
-    def _to_tensor(self, ndarray, dtype):
-        tensor = torch.tensor(ndarray, dtype=dtype, device=self.device) if ndarray is not None else None
-        return tensor
 
 
 if __name__ == "__main__":

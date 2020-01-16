@@ -29,7 +29,7 @@ def cnn_main():
     
 def fcn_main():
     fcn_setting = config['fcn']
-    for exp_idx in range(repe_time):
+    for exp_idx in range(1):
         exp_idx += 1
         fcn = FCN_Wraper(fil_num        = fcn_setting['fil_num'],
                         drop_rate       = fcn_setting['drop_rate'],
@@ -41,13 +41,13 @@ def fcn_main():
                         seed            = seed,
                         model_name      = 'fcn',
                         metric          = 'accuracy')
-        # fcn.optimal_epoch = 0
-        fcn.train(lr     = fcn_setting['learning_rate'],
-                  epochs = fcn_setting['train_epochs'])
+        fcn.optimal_epoch = 2960
+        # fcn.train(lr     = fcn_setting['learning_rate'],
+        #           epochs = fcn_setting['train_epochs'])
         fcn.test_and_generate_DPMs()
 
 
-def mlp_A_main():
+def mlp_A_main(seed):
     mlp_setting = config['mlp']
     for exp_idx in range(repe_time):
         mlp = MLP_Wrapper_A(fil_num         = mlp_setting['fil_num'],
@@ -100,8 +100,9 @@ def mlp_C_main():
 
 if __name__ == "__main__":
     with torch.cuda.device(1):
-        mlp_C_main()
-
+        for seed in range(10):
+            mlp_A_main(seed)
+        
 
 
 

@@ -77,7 +77,7 @@ class FCN_Data(CNN_Data):
             return data, label
 
 
-class MLP_Data1(Dataset):
+class MLP_Data(Dataset):
     def __init__(self, Data_dir, exp_idx, stage, roi_threshold, seed=1000):
         random.seed(seed)
         self.exp_idx = exp_idx
@@ -116,129 +116,8 @@ class MLP_Data1(Dataset):
         return weights, count0 / count1
 
 
-class MLP_Data(Dataset):
-    def __init__(self, X_bn, X_no_bn, y):
-        self.X_bn = X_bn
-        self.X_no_bn = X_no_bn
-        self.y = y
-    
-    def __len__(self):
-        return len(self.y)
-    
-    def __getitem__(self, idx):
-        X_bn_sample = self.X_bn[idx] if self.X_bn is not None else None
-        X_no_bn_sample = self.X_no_bn[idx] if self.X_no_bn is not None else None
-        y_sample = self.y[idx]
-        return X_bn_sample, X_no_bn_sample, y_sample
-    
-def _MLP_collate_fn(batch):
-    X_bn_batch = np.stack([s[0] for s in batch]) if batch[0][0] is not None else None
-    X_no_bn_batch = np.stack([s[1] for s in batch]) if batch[0][1] is not None else None
-    y_batch = np.stack([s[2] for s in batch])
-    return X_bn_batch, X_no_bn_batch, y_batch
-
-class BuildDF:
-    def __init__(self, exp_idx, roi_thrshold=0.6):
-        self.roi_thrshold = roi_thrshold
-        self.exp_idx = exp_idx
-        self.select_roi()
-        
-    def select_roi(self):
-        self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
-        self.roi = self.roi > self.roi_thrshold
-        for i in range(self.roi.shape[0]):
-            for j in range(self.roi.shape[1]):
-                for k in range(self.roi.shape[2]):
-                    if i%3!=0 or j%2!=0 or k%3!=0:
-                        self.roi[i,j,k] = False
-        
-    def load(self):
-        # read csv into data frame
-        tmp = '/home/sq/brain2020'
-        table = []
-        for stage in ['train', 'valid', 'test']:
-            with open('{}/lookupcsv/exp{}/{}.csv'.format(tmp, self.exp_idx, stage), newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    #risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
-                    risk = None
-                    line = list(row.values()) + [stage] + [risk]
-                    table.append(line)
-        for stage in ['NACC', 'AIBL', 'FHS']:
-            with open('{}/lookupcsv/{}.csv'.format(tmp, stage), newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    #risk = get_AD_risk(np.load('{}/DPMs/fcn_exp{}/'.format(tmp, self.exp_idx) + row['filename'] + '.npy'))
-                    risk = None
-                    line = list(row.values()) + [stage] + [risk]
-                    table.append(line)
-        self.df = pd.DataFrame(table, columns = ['filename', 'label', 'age', 'gender', 'mmse', 'apoe', 'ravlt_lrn', 'ravlt_fgt', 'ravlt_pfgt', 'dataset', 'riskmap'])
-            
-        # AD, NL to 1, 0
-        label_dict = {'AD':1, 'NL':0}
-        for i in range(len(self.df)):
-            self.df.loc[i, 'label'] = label_dict[self.df.loc[i, 'label']]
-    
-    def get_ndarray(self, cols, longitudinal=False):
-        dset_names = self.df.dataset.unique().tolist()
-        cols_bn = sorted(list(set(cols) & {'age', 'mmse', 'ravlt_lrn', 'ravlt_fgt', 'ravlt_pfgt'}))
-        cols_no_bn = sorted(list(set(cols) & {'riskmap', 'gender', 'apoe'}))
-        X_bn, X_no_bn, y = {}, {}, {}
-        for ds in dset_names:
-            # X that needs to be batch-normalized
-            if cols_bn:
-                X_bn[ds] = self.df[self.df.dataset == ds][cols_bn].values
-                X_bn[ds] = [np.concatenate(r) for r in X_bn[ds]]
-                X_bn[ds] = np.stack(X_bn[ds]).astype(np.float32)
-            else: 
-                X_bn[ds] = None
-                
-            # X that doesn't need to be batch-normalized
-            if cols_no_bn:
-                X_no_bn[ds] = self.df[self.df.dataset == ds][cols_no_bn].values
-                X_no_bn[ds] = [np.concatenate(r) for r in X_no_bn[ds]]
-                X_no_bn[ds] = np.stack(X_no_bn[ds]).astype(np.float32)
-            else: 
-                X_no_bn[ds] = None
-
-            # y
-            if not longitudinal:
-                y[ds] = self.df[self.df.dataset == ds]['label'].values.astype(np.int)
-            else:
-                y[ds] = self.df[self.df.dataset == ds]['long_label'].values.astype(np.int)
-            
-        return X_bn, X_no_bn, y
-    
-    def keep_data_completeness(self, cols):
-        count_pre = self.df['dataset'].value_counts()
-        len_old = len(self.df)
-        mask = pd.notnull(self.df[cols]).all(axis=1)
-        self.df = self.df[mask]
-        count_new = self.df['dataset'].value_counts()
-        print('Number of deleted rows: {}/{}'.format(len_old-len(self.df), len_old))
-        for k, v in count_pre.items():
-            if k in count_new:
-                print('\t{}: {}/{}'.format(k, v - self.df['dataset'].value_counts()[k], v))
-            else:
-                print('\t{}: {}/{}'.format(k, v, v))
-
-
-def load_neurologist_data(fn):
-    with open(fn, 'r') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        rows = list(csv_reader)
-    rows = np.array(rows)
-    rows = rows[1:,4:]
-    rows[rows == 'AD'] = 1
-    rows[rows == 'NL'] = 0
-    
-    rslt = {'y': rows[:,0].astype(np.int),
-            'y_pred_list': rows[:,1:].T.astype(np.int)}
-    return rslt
-
-
 if __name__ == "__main__":
-    data = MLP_Data1(Data_dir='./DPMs/fcn_exp1/', exp_idx=1, stage='train', roi_threshold=0.6)
+    data = MLP_Data(Data_dir='./DPMs/fcn_exp1/', exp_idx=1, stage='train', roi_threshold=0.6)
     dataloader = DataLoader(data, batch_size=10, shuffle=False)
     for risk, label, demor in dataloader:
         print(risk.shape, label, demor)
