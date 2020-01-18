@@ -29,8 +29,7 @@ def cnn_main():
     
 def fcn_main():
     fcn_setting = config['fcn']
-    for exp_idx in range(1):
-        exp_idx += 1
+    for exp_idx in range(5):
         fcn = FCN_Wraper(fil_num        = fcn_setting['fil_num'],
                         drop_rate       = fcn_setting['drop_rate'],
                         batch_size      = fcn_setting['batch_size'],
@@ -41,14 +40,14 @@ def fcn_main():
                         seed            = seed,
                         model_name      = 'fcn',
                         metric          = 'accuracy')
-        fcn.optimal_epoch = 2960
-        # fcn.train(lr     = fcn_setting['learning_rate'],
-        #           epochs = fcn_setting['train_epochs'])
+        # fcn.optimal_epoch = 2960
+        fcn.train(lr     = fcn_setting['learning_rate'],
+                  epochs = fcn_setting['train_epochs'])
         fcn.test_and_generate_DPMs()
 
 
 def mlp_A_main(seed):
-    mlp_setting = config['mlp']
+    mlp_setting = config['mlp_A']
     for exp_idx in range(repe_time):
         mlp = MLP_Wrapper_A(fil_num         = mlp_setting['fil_num'],
                             drop_rate       = mlp_setting['drop_rate'],
@@ -64,8 +63,8 @@ def mlp_A_main(seed):
         mlp.test()
 
 
-def mlp_B_main():
-    mlp_setting = config['mlp']
+def mlp_B_main(seed):
+    mlp_setting = config['mlp_B']
     for exp_idx in range(repe_time):
         mlp = MLP_Wrapper_B(fil_num         = mlp_setting['fil_num'],
                             drop_rate       = mlp_setting['drop_rate'],
@@ -81,8 +80,8 @@ def mlp_B_main():
         mlp.test()
 
 
-def mlp_C_main():
-    mlp_setting = config['mlp']
+def mlp_C_main(seed):
+    mlp_setting = config['mlp_C']
     for exp_idx in range(repe_time):
         mlp = MLP_Wrapper_C(fil_num         = mlp_setting['fil_num'],
                             drop_rate       = mlp_setting['drop_rate'],
@@ -99,9 +98,9 @@ def mlp_C_main():
 
 
 if __name__ == "__main__":
-    with torch.cuda.device(1):
-        for seed in range(10):
-            mlp_A_main(seed)
+    with torch.cuda.device(3):
+        for seed in range(1):
+            mlp_C_main(seed)
         
 
 

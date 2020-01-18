@@ -1,0 +1,62 @@
+Job launching after 0.15 seconds in submission.
+Running python job.
+Changed into dir /home/sq/brain2020/hyperparameter_tuning/mlp_A
+Importing mlp_spearmint.py
+Running mlp_spearmint.main()
+Traceback (most recent call last):
+  File "mlp_main.py", line 33, in <module>
+    mlp_main(filename)
+  File "mlp_main.py", line 24, in mlp_main
+    metric          = 'accuracy')
+  File "../../model_wraper.py", line 234, in __init__
+    self.prepare_dataloader(batch_size, balanced, self.Data_dir)
+  File "../../model_wraper.py", line 238, in prepare_dataloader
+    train_data = MLP_Data(Data_dir, self.exp_idx, stage='train', roi_threshold=self.roi_threshold, seed=self.seed)
+  File "../../dataloader.py", line 86, in __init__
+    self.select_roi()
+  File "../../dataloader.py", line 96, in select_roi
+    self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
+  File "/home/sq/.conda/envs/RL/lib/python3.6/site-packages/numpy/lib/npyio.py", line 422, in load
+    fid = open(os_fspath(file), "rb")
+FileNotFoundError: [Errno 2] No such file or directory: './DPMs/fcn_exp1/train_MCC.npy'
+Traceback (most recent call last):
+  File "/home/sq/GAN/script/Spearmint/spearmint/launcher.py", line 243, in launch
+    result = python_launcher(job)
+  File "/home/sq/GAN/script/Spearmint/spearmint/launcher.py", line 327, in python_launcher
+    result = module.main(job['id'], params)
+  File "/home/sq/brain2020/hyperparameter_tuning/mlp_A/mlp_spearmint.py", line 44, in main
+    params['roi_threshold'])
+  File "/home/sq/brain2020/hyperparameter_tuning/mlp_A/mlp_spearmint.py", line 32, in function
+    val = val[val.index('$')+1:val.index('$$')]
+ValueError: substring not found
+Problem executing the function
+Job failed in 1.03 seconds.
+Error in atexit._run_exitfuncs:
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/atexit.py", line 24, in _run_exitfuncs
+    func(*targs, **kargs)
+  File "/usr/local/lib/python2.7/dist-packages/pymongo/periodic_executor.py", line 173, in _shutdown_executors
+    executor.join(1)
+  File "/usr/local/lib/python2.7/dist-packages/pymongo/periodic_executor.py", line 96, in join
+    self._thread.join(timeout)
+  File "/usr/lib/python2.7/threading.py", line 951, in join
+    self.__block.wait(delay)
+  File "/usr/lib/python2.7/threading.py", line 359, in wait
+    _sleep(delay)
+KeyboardInterrupt
+Error in sys.exitfunc:
+{u'train_epochs': array([200]), u'learning_rate': array([0.0001]), u'batch_size': array([8]), u'fil_num': array([5]), u'drop_rate': array([0.]), u'balanced': array([0]), u'roi_threshold': array([0.5])}
+
+(<type 'exceptions.ValueError'>, ValueError('substring not found',), <traceback object at 0x7f19fdf58638>)
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/atexit.py", line 24, in _run_exitfuncs
+    func(*targs, **kargs)
+  File "/usr/local/lib/python2.7/dist-packages/pymongo/periodic_executor.py", line 173, in _shutdown_executors
+    executor.join(1)
+  File "/usr/local/lib/python2.7/dist-packages/pymongo/periodic_executor.py", line 96, in join
+    self._thread.join(timeout)
+  File "/usr/lib/python2.7/threading.py", line 951, in join
+    self.__block.wait(delay)
+  File "/usr/lib/python2.7/threading.py", line 359, in wait
+    _sleep(delay)
+KeyboardInterrupt

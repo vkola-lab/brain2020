@@ -118,9 +118,10 @@ def read_csv_complete(filename):
     filenames, labels, demors = [], [], []
     for line in your_list:
         try:
-            demor = list(map(float, line[2:6]))
+            demor = list(map(float, line[2:5]))
             gender = [0, 1] if demor[1] == 1 else [1, 0]
-            demor = demor[:1] + gender + demor[2:] 
+            demor = [(demor[0]-70.0)/10.0] + gender + [(demor[2]-27)/2]
+            # demor = [demor[0]] + gender + demor[2:]
         except:
             continue
         filenames.append(line[0])

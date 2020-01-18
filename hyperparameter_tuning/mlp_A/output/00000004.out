@@ -1,0 +1,24 @@
+Job launching after 0.13 seconds in submission.
+Running python job.
+Changed into dir /home/sq/brain2020/hyperparameter_tuning/mlp_A
+Importing mlp_spearmint.py
+Running mlp_spearmint.main()
+Traceback (most recent call last):
+  File "mlp_main.py", line 3, in <module>
+    from model_wraper import MLP_Wraper_A
+ImportError: cannot import name 'MLP_Wraper_A'
+Traceback (most recent call last):
+  File "/home/sq/GAN/script/Spearmint/spearmint/launcher.py", line 243, in launch
+    result = python_launcher(job)
+  File "/home/sq/GAN/script/Spearmint/spearmint/launcher.py", line 327, in python_launcher
+    result = module.main(job['id'], params)
+  File "/home/sq/brain2020/hyperparameter_tuning/mlp_A/mlp_spearmint.py", line 44, in main
+    params['roi_threshold'])
+  File "/home/sq/brain2020/hyperparameter_tuning/mlp_A/mlp_spearmint.py", line 32, in function
+    val = val[val.index('$')+1:val.index('$$')]
+ValueError: substring not found
+Problem executing the function
+Job failed in 1.08 seconds.
+{u'train_epochs': array([200]), u'learning_rate': array([0.0001]), u'batch_size': array([8]), u'fil_num': array([5]), u'drop_rate': array([0.]), u'balanced': array([0]), u'roi_threshold': array([0.5])}
+
+(<type 'exceptions.ValueError'>, ValueError('substring not found',), <traceback object at 0x7fc75c0cc638>)

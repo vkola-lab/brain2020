@@ -296,7 +296,7 @@ class MLP_Wrapper_A(CNN_Wraper):
 class MLP_Wrapper_B(MLP_Wrapper_A):
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold):
         super().__init__(fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold)
-        self.model = _MLP_B(in_size=5, fil_num=fil_num, drop_rate=drop_rate).cuda()
+        self.model = _MLP_B(in_size=4, fil_num=fil_num, drop_rate=drop_rate).cuda()
     
     def train_model_epoch(self):
         self.model.train(True)
@@ -340,7 +340,7 @@ class MLP_Wrapper_B(MLP_Wrapper_A):
 class MLP_Wrapper_C(MLP_Wrapper_A):
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold):
         super().__init__(fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold)
-        self.model = _MLP_C(in_size=self.in_size+5, fil_num=fil_num, drop_rate=drop_rate).cuda()
+        self.model = _MLP_C(in_size=self.in_size+4, fil_num=fil_num, drop_rate=drop_rate).cuda()
     
     def train_model_epoch(self):
         self.model.train(True)
@@ -356,7 +356,7 @@ class MLP_Wrapper_C(MLP_Wrapper_A):
         with torch.no_grad():
             self.model.train(False)
             valid_matrix = [[0, 0], [0, 0]]
-            for inputs, labels, demors in self.train_dataloader:
+            for inputs, labels, demors in self.valid_dataloader:
                 inputs, labels, demors = inputs.cuda(), labels.cuda(), demors.cuda()
                 preds = self.model(inputs, demors)
                 valid_matrix = matrix_sum(valid_matrix, get_confusion_matrix(preds, labels))
