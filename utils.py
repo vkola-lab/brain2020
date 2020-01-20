@@ -102,6 +102,13 @@ def write_raw_score(f, preds, labels):
         f.write(pred + '__' + label + '\n')
 
 
+def write_raw_score_sk(f, preds, labels):
+    for index, pred in enumerate(preds):
+        label = str(labels[index])
+        pred = "__".join(map(str, list(pred)))
+        f.write(pred + '__' + label + '\n')
+
+
 def read_csv(filename):
     with open(filename, 'r') as f:
         reader = csv.reader(f)
