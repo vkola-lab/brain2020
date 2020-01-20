@@ -88,7 +88,7 @@ def mlp_C_main(seed):
                             batch_size      = mlp_setting['batch_size'],
                             balanced        = mlp_setting['balanced'],
                             roi_threshold   = mlp_setting['roi_threshold'],
-                            exp_idx         = 1,
+                            exp_idx         = 2,
                             seed            = seed,
                             model_name      = 'mlp_C',
                             metric          = 'accuracy')

@@ -19,13 +19,13 @@ def upsample(heat):
                 new_heat[start_idx1::4, start_idx2::4, start_idx3::4] = heat
     return new_heat[:181, :217, :181]
 
-def plot_heatmap(path, figsize):
-    heat_train = upsample(np.load(path + 'train_MCC.npy'))
-    heat_valid = upsample(np.load(path + 'valid_MCC.npy'))
-    heat_test = upsample(np.load(path + 'test_MCC.npy'))
-    heat_NACC = upsample(np.load(path + 'NACC_MCC.npy'))
-    heat_AIBL = upsample(np.load(path + 'AIBL_MCC.npy'))
-    heat_FHS = upsample(np.load(path + 'FHS_MCC.npy'))
+def plot_heatmap(path, exp_idx, figsize):
+    heat_train = upsample(np.load(path + '{}/'.format(exp_idx) + 'train_MCC.npy'))
+    heat_valid = upsample(np.load(path + '{}/'.format(exp_idx) + 'valid_MCC.npy'))
+    heat_test = upsample(np.load(path + '{}/'.format(exp_idx) + 'test_MCC.npy'))
+    heat_NACC = upsample(np.load(path + '{}/'.format(exp_idx) + 'NACC_MCC.npy'))
+    heat_AIBL = upsample(np.load(path + '{}/'.format(exp_idx) + 'AIBL_MCC.npy'))
+    heat_FHS = upsample(np.load(path + '{}/'.format(exp_idx) + 'FHS_MCC.npy'))
     MRI = np.load('/data/datasets/ADNI_NoBack/ADNI_128_S_1409_MR_MPR__GradWarp__B1_Correction__N3__Scaled_Br_20070821114304781_S33787_I69400.npy')
 
     fig = plt.figure(figsize=figsize, dpi=300)
@@ -70,12 +70,12 @@ def plot_heatmap(path, figsize):
         l.set_weight("bold")
         l.set_fontsize(14)
 
-    fig.savefig('./heatmap.tif', dpi=300)
+    fig.savefig('./heatmap{}.tif'.format(exp_idx), dpi=300)
 
 
-def plot_complete_heatmap(path, figsize):
+def plot_complete_heatmap(path, exp_idx, figsize):
     filename = 'ADNI_128_S_1409_MR_MPR__GradWarp__B1_Correction__N3__Scaled_Br_20070821114304781_S33787_I69400.npy'
-    risk = upsample(np.load(path + 'test_MCC.npy'))
+    risk = upsample(np.load(path + '{}/'.format(exp_idx) + 'test_MCC.npy'))
     mri = np.load('/data/datasets/ADNI_NoBack/'+filename)
     small = 0.1
     cbar_font_size = 14
@@ -105,7 +105,7 @@ def plot_complete_heatmap(path, figsize):
     # for l in cbar.ax.yaxis.get_ticklabels():
     #     l.set_weight("bold")
     #     l.set_fontsize(cbar_font_size)
-    fig.savefig('./supple_heatmap_axial.tif', dpi=300)
+    fig.savefig('./supple_heatmap_axial{}.tif'.format(exp_idx), dpi=300)
 
     # coronal plot
     fig = plt.figure(figsize=figsize, dpi=300)
@@ -113,10 +113,6 @@ def plot_complete_heatmap(path, figsize):
                      nrows_ncols=(6, 8),
                      axes_pad=0.00,
                      aspect=True,
-                    #  cbar_location="right",
-                    #  cbar_mode="single",
-                    #  cbar_size="5%",
-                    #  cbar_pad=0.05,
                      )
     for step in range(3):
         for i in range(8):
@@ -126,11 +122,7 @@ def plot_complete_heatmap(path, figsize):
             grid[step * 16 + i + 8].axis('off')
 
     grid[0].set_title('(c)', fontdict=font_dict, loc='right', color = "k")
-    # cbar = grid[9].cax.colorbar(im, drawedges=False)
-    # for l in cbar.ax.yaxis.get_ticklabels():
-    #     l.set_weight("bold")
-    #     l.set_fontsize(cbar_font_size)
-    fig.savefig('./supple_heatmap_coronal.tif', dpi=300)
+    fig.savefig('./supple_heatmap_coronal{}.tif'.format(exp_idx), dpi=300)
 
     # sagittal plot
     fig = plt.figure(figsize=figsize, dpi=300)
@@ -138,10 +130,6 @@ def plot_complete_heatmap(path, figsize):
                      nrows_ncols=(6, 8),
                      axes_pad=0.00,
                      aspect=True,
-                    #  cbar_location="right",
-                    #  cbar_mode="single",
-                    #  cbar_size="5%",
-                    #  cbar_pad=0.05,
                      )
     for step in range(3):
         for i in range(8):
@@ -151,14 +139,17 @@ def plot_complete_heatmap(path, figsize):
             grid[step * 16 + i + 8].axis('off')
 
     grid[0].set_title('(d)', fontdict=font_dict, loc='right', color = "k")
-    # cbar = grid[9].cax.colorbar(im, drawedges=False)
-    # for l in cbar.ax.yaxis.get_ticklabels():
-    #     l.set_weight("bold")
-    #     l.set_fontsize(cbar_font_size)
-    fig.savefig('./supple_heatmap_sagittal.tif', dpi=300)
+    fig.savefig('./supple_heatmap_sagittal{}.tif'.format(exp_idx), dpi=300)
 
 
 if __name__ == '__main__':
-    plot_heatmap('../DPMs/fcn_exp1/', figsize=(9, 4))
-    plot_complete_heatmap('../DPMs/fcn_exp1/', figsize=(3, 2))
-
+    plot_heatmap('../DPMs/fcn_exp', exp_idx=0, figsize=(9, 4))
+    plot_complete_heatmap('../DPMs/fcn_exp', exp_idx=0, figsize=(3, 2))
+    plot_heatmap('../DPMs/fcn_exp', exp_idx=1, figsize=(9, 4))
+    plot_complete_heatmap('../DPMs/fcn_exp', exp_idx=1, figsize=(3, 2))
+    plot_heatmap('../DPMs/fcn_exp', exp_idx=2, figsize=(9, 4))
+    plot_complete_heatmap('../DPMs/fcn_exp', exp_idx=2, figsize=(3, 2))
+    plot_heatmap('../DPMs/fcn_exp', exp_idx=3, figsize=(9, 4))
+    plot_complete_heatmap('../DPMs/fcn_exp', exp_idx=3, figsize=(3, 2))
+    plot_heatmap('../DPMs/fcn_exp', exp_idx=4, figsize=(9, 4))
+    plot_complete_heatmap('../DPMs/fcn_exp', exp_idx=4, figsize=(3, 2))

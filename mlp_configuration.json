@@ -1,9 +1,9 @@
 {
-    "train_epochs": 2984, 
-    "learning_rate": 0.002061286946539739, 
-    "batch_size": 8, 
-    "fil_num": 300, 
-    "drop_rate": 0.0, 
-    "balanced": 0, 
-    "roi_threshold": 0.0005435804102822432
+    "fil_num1": 200, 
+    "fil_num2": 94, 
+    "train_epochs": 200, 
+    "learning_rate": 0.015079860707997, 
+    "batch_size": 128, 
+    "alpha": 0.019308390359404706, 
+    "roi_threshold": 0.4074196486265493
 }

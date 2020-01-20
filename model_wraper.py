@@ -49,7 +49,7 @@ class CNN_Wraper:
             valid_matrix = self.valid_model_epoch()
             #print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
             self.save_checkpoint(valid_matrix)
-        print('Best model saved at the {}th epoch:'.format(self.optimal_epoch), self.optimal_valid_metric, self.optimal_valid_matrix)
+        # print('Best model saved at the {}th epoch:'.format(self.optimal_epoch), self.optimal_valid_metric, self.optimal_valid_matrix)
         return self.optimal_valid_metric
 
     def test(self):
@@ -275,9 +275,9 @@ class MLP_Wrapper_A(CNN_Wraper):
         return valid_matrix
 
     def test(self):
-        print('testing ... ')
         self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
         self.model.train(False)
+        accu_list = []
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
                 data = MLP_Data(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, seed=self.seed)
@@ -289,8 +289,10 @@ class MLP_Wrapper_A(CNN_Wraper):
                     preds = self.model(inputs)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
+                # print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
+                accu_list.append(self.eval_metric(matrix))
+        return accu_list
 
 
 class MLP_Wrapper_B(MLP_Wrapper_A):
@@ -319,7 +321,7 @@ class MLP_Wrapper_B(MLP_Wrapper_A):
         return valid_matrix
 
     def test(self):
-        print('testing ... ')
+        accu_list = []
         self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
         self.model.train(False)
         with torch.no_grad():
@@ -333,8 +335,10 @@ class MLP_Wrapper_B(MLP_Wrapper_A):
                     preds = self.model(inputs)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
+                # print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
+                accu_list.append(self.eval_metric(matrix))
+        return accu_list
 
 
 class MLP_Wrapper_C(MLP_Wrapper_A):
@@ -363,7 +367,7 @@ class MLP_Wrapper_C(MLP_Wrapper_A):
         return valid_matrix
 
     def test(self):
-        print('testing ... ')
+        accu_list = []
         self.model.load_state_dict(torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
         self.model.train(False)
         with torch.no_grad():
@@ -377,8 +381,10 @@ class MLP_Wrapper_C(MLP_Wrapper_A):
                     preds = self.model(inputs, demors)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
+                # print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
+                accu_list.append(self.eval_metric(matrix))
+        return accu_list
 
 
 if __name__ == "__main__":

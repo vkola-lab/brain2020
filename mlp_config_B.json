@@ -1,0 +1,8 @@
+{
+    "train_epochs": 292,
+    "learning_rate": 0.0135,
+    "batch_size": 77,
+    "fil_num": 175,
+    "alpha":0.08,
+    "roi_threshold": 0.332
+}
