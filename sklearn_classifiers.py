@@ -41,6 +41,17 @@ def gen_array(dataset, model):
         Y.append(y)
     return X, Y
 
+
+def norm(List_X):
+    norm_list = []
+    for X in List_X:
+        X = np.array(X)
+        X = (X - X.mean()) / X.std()
+        X = X.tolist()
+        norm_list.append(X)
+    return norm_list
+
+
 def write_score(exp_idx, model, clf, X_test, y_test, X_NACC, y_NACC, X_AIBL, y_AIBL, X_FHS, y_FHS):
     for model in ['A', 'B', 'C']:
         if not os.path.exists('./checkpoint_dir/mlp_{}_exp{}/'.format(model, exp_idx)):
@@ -58,7 +69,7 @@ def write_score(exp_idx, model, clf, X_test, y_test, X_NACC, y_NACC, X_AIBL, y_A
     write_raw_score_sk(f, clf.predict_proba(X_FHS), y_FHS)
     f.close()
 
-def mlp_A_train(exp_idx, repe_time, roi_threshold, accu):
+def mlp_A_train(exp_idx, repe_time, roi_threshold, alpha, batch_size, init_lr, max_iter, hidden_size, accu):
     X_train, y_train = gen_array(MLP_Data('./DPMs/fcn_exp{}/'.format(exp_idx), exp_idx, 'train', roi_threshold, seed=1000), 'A')
     X_valid, y_valid = gen_array(MLP_Data('./DPMs/fcn_exp{}/'.format(exp_idx), exp_idx, 'valid', roi_threshold, seed=1000), 'A')
     X_test, y_test = gen_array(MLP_Data('./DPMs/fcn_exp{}/'.format(exp_idx), exp_idx, 'test', roi_threshold, seed=1000), 'A')
@@ -66,14 +77,10 @@ def mlp_A_train(exp_idx, repe_time, roi_threshold, accu):
     X_AIBL, y_AIBL = gen_array(MLP_Data('./DPMs/fcn_exp{}/'.format(exp_idx), exp_idx, 'AIBL', roi_threshold, seed=1000), 'A')
     X_FHS, y_FHS = gen_array(MLP_Data('./DPMs/fcn_exp{}/'.format(exp_idx), exp_idx, 'FHS', roi_threshold, seed=1000), 'A')
 
+    #X_train, X_valid, X_test, X_NACC, X_AIBL, X_FHS = norm([X_train, X_valid, X_test, X_NACC, X_AIBL, X_FHS])
+
     for idx in range(repe_time):
-        # clf = MLPClassifier(hidden_layer_sizes=(200, 100),
-        #                     max_iter=440,
-        #                     alpha=0.379,
-        #                     batch_size=128,
-        #                     learning_rate_init=0.000629
-        #                     )
-        clf = MLPClassifier(max_iter=1000)
+        clf = MLPClassifier(hidden_layer_sizes=(hidden_size), alpha=alpha, batch_size=batch_size, learning_rate_init=init_lr, max_iter=max_iter, tol=0)
         clf.fit(X_train + X_valid, y_train + y_valid)
         write_score(exp_idx, 'A', clf, X_test, y_test, X_NACC, y_NACC, X_AIBL, y_AIBL, X_FHS, y_FHS)
         accu['A']['test'].append(accuracy_score(y_test, clf.predict(X_test)))
@@ -114,6 +121,21 @@ def mlp_C_train(exp_idx, repe_time, roi_threshold, accu):
         accu['C']['NACC'].append(accuracy_score(y_NACC, clf.predict(X_NACC)))
         accu['C']['AIBL'].append(accuracy_score(y_AIBL, clf.predict(X_AIBL)))
         accu['C']['FHS'].append(accuracy_score(y_FHS, clf.predict(X_FHS)))
+
+def tune_A(roi=0.6, alpha=0.0, batch_size='auto', lr=0.01, max_iter=1500, hidden_size=5000):
+    accu = {'A': {'test': [], 'NACC': [], 'AIBL': [], 'FHS': []}}
+    for exp_idx in range(5):
+        mlp_A_train(exp_idx, 3, roi, alpha, batch_size, lr, max_iter, hidden_size, accu)
+    print('roi {} alpha {} batch_size {} lr {}, max_iter {} hidden {}'.format(roi, alpha, batch_size, lr, max_iter, hidden_size))
+    print('ADNI test accuracy ',
+          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['test'])), float(np.std(accu['A']['test']))))
+    print('NACC test accuracy ',
+          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['NACC'])), float(np.std(accu['A']['NACC']))))
+    print('AIBL test accuracy ',
+          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['AIBL'])), float(np.std(accu['A']['AIBL']))))
+    print('FHS test accuracy  ',
+          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['FHS'])), float(np.std(accu['A']['FHS']))))
+
 
 def mlp():
     accu = {'A':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}, \
@@ -178,8 +200,26 @@ def hypertune(config, model):
 
 if __name__ == "__main__":
     # find_MCC_threshold()
-    filename = sys.argv[1]
-    hypertune(filename, 'A')
+    # mlp()
+    # filename = sys.argv[1]
+    # hypertune(filename, 'A')
+
+
+    # for roi in [-0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]:
+    # for size in [4000, 5000, 6000, 7000]:
+    # for init_lr in [1, 0.1, 0.001, 0.0001, 0.00001]:
+
+    # for exp_idx in range(5):
+    #     accu = {'A': {'test': [], 'NACC': [], 'AIBL': [], 'FHS': []}}
+    #     mlp_A_train(exp_idx, 1, 0.6, 0.0, 'auto', 0.01, 1500, 100, accu)
+    #     print(accu)
+
+
+
+    # for batch_size in [4, 8, 16, 32, 64, 128, 'auto']:
+    # for lr in [0.1, 0.01, 0.001, 0.0001]:
+    # for roi in [0.6, 0.5, 0.4, 0.3]:
+    tune_A(roi=0.6, alpha=0.0, batch_size='auto', lr=0.01, max_iter=1500, hidden_size=100)
 
 
 """

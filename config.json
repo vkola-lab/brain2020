@@ -11,31 +11,38 @@
         "train_epochs":         3000
     },
     "mlp_A": {
-        "fil_num":              57,
-        "drop_rate":            0.328,
+        "imbalan_ratio":        1.05,
+        "fil_num":              100,
+        "drop_rate":            0.5,
         "batch_size":           8,
         "balanced":             0,
-        "roi_threshold":        0.009,
-        "learning_rate":        0.097,
-        "train_epochs":         3000
+        "roi_threshold":        0.6,
+        "roi_count":            200,
+        "choice":               "count",
+        "learning_rate":        0.01,
+        "train_epochs":         300
     }, 
     "mlp_B": {
-        "fil_num":              258,
+        "imbalan_ratio":        1.05,
+        "fil_num":              10,
         "drop_rate":            0.0,
         "batch_size":           8,
-        "balanced":             0,
+        "balanced":             1,
         "roi_threshold":        0.0,
         "learning_rate":        0.1,
-        "train_epochs":         3000
+        "train_epochs":         300
     }, 
     "mlp_C": {
+        "imbalan_ratio":        1.05,
         "fil_num":              20,
         "drop_rate":            0.0,
         "batch_size":           8,
         "balanced":             0,
         "roi_threshold":        0.5,
+        "roi_count":            200,
+        "choice":               "count",
         "learning_rate":        0.1,
-        "train_epochs":         1000
+        "train_epochs":         300
     }, 
     "cnn": {
         "fil_num":              20,

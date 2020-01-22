@@ -48,7 +48,8 @@ def fcn_main():
 
 def mlp_A_main(seed):
     mlp_setting = config['mlp_A']
-    for exp_idx in range(repe_time):
+    print(mlp_setting)
+    for exp_idx in range(1):
         mlp = MLP_Wrapper_A(fil_num         = mlp_setting['fil_num'],
                             drop_rate       = mlp_setting['drop_rate'],
                             batch_size      = mlp_setting['batch_size'],
@@ -98,9 +99,10 @@ def mlp_C_main(seed):
 
 
 if __name__ == "__main__":
+    config = read_json('./config.json')
     with torch.cuda.device(3):
         for seed in range(1):
-            mlp_C_main(seed)
+            mlp_A_main(seed)
         
 
 

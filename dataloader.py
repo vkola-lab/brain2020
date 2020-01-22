@@ -78,12 +78,16 @@ class FCN_Data(CNN_Data):
 
 
 class MLP_Data(Dataset):
-    def __init__(self, Data_dir, exp_idx, stage, roi_threshold, seed=1000):
+    def __init__(self, Data_dir, exp_idx, stage, roi_threshold, roi_count, choice, seed=1000):
         random.seed(seed)
         self.exp_idx = exp_idx
         self.Data_dir = Data_dir
         self.roi_threshold = roi_threshold
-        self.select_roi()
+        self.roi_count = roi_count
+        if choice == 'count':
+            self.select_roi_count()
+        else:
+            self.select_roi_thres()
         if stage in ['train', 'valid', 'test']:
             path = './lookupcsv/exp{}/{}.csv'.format(exp_idx, stage)
         else:
@@ -92,7 +96,7 @@ class MLP_Data(Dataset):
         self.risk_list = [get_AD_risk(np.load(Data_dir+filename+'.npy'))[self.roi] for filename in self.Data_list]
         self.in_size = self.risk_list[0].shape[0]
         
-    def select_roi(self):
+    def select_roi_thres(self):
         self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
         self.roi = self.roi > self.roi_threshold
         for i in range(self.roi.shape[0]):
@@ -100,6 +104,20 @@ class MLP_Data(Dataset):
                 for k in range(self.roi.shape[2]):
                     if i%3!=0 or j%2!=0 or k%3!=0:
                         self.roi[i,j,k] = False
+
+    def select_roi_count(self):
+        self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
+        tmp = []
+        for i in range(self.roi.shape[0]):
+            for j in range(self.roi.shape[1]):
+                for k in range(self.roi.shape[2]):
+                    if i%3!=0 or j%2!=0 or k%3!=0: continue
+                    tmp.append((self.roi[i,j,k], i, j, k))
+        tmp.sort()
+        tmp = tmp[-self.roi_count:]
+        self.roi = self.roi != self.roi
+        for _, i, j, k in tmp:
+            self.roi[i,j,k] = True
 
     def __len__(self):
         return len(self.Data_list)

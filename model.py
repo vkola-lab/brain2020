@@ -130,7 +130,9 @@ class _FCN(nn.Module):
 
 class _MLP_A(nn.Module):
     def __init__(self, in_size, drop_rate, fil_num):
-        super(_MLP_A, self).__init__()        
+        super(_MLP_A, self).__init__()
+        self.bn1 = nn.BatchNorm1d(in_size)   
+        self.bn2 = nn.BatchNorm1d(fil_num)  
         self.fc1 = nn.Linear(in_size, fil_num)
         self.fc2 = nn.Linear(fil_num, 2)
         self.do1 = nn.Dropout(drop_rate)
@@ -138,12 +140,46 @@ class _MLP_A(nn.Module):
         self.ac1 = nn.LeakyReLU()
     
     def forward(self, X):
+        X = self.bn1(X)
         out = self.do1(X)
         out = self.fc1(out)
+        out = self.bn2(out)
         out = self.ac1(out)
         out = self.do2(out)
         out = self.fc2(out)
         return out
+
+
+class _MLP_A1(nn.Module):
+    def __init__(self, in_size, drop_rate, fil_num1, fil_num2):
+        super(_MLP_A, self).__init__()
+        self.bn1 = nn.BatchNorm1d(in_size)   
+        self.bn2 = nn.BatchNorm1d(fil_num1)  
+        self.bn3 = nn.BatchNorm1d(fil_num2)  
+        self.fc1 = nn.Linear(in_size, fil_num1)
+        self.fc2 = nn.Linear(fil_num1, fil_num2)
+        self.fc3 = nn.Linear(fil_num2, 2)
+        self.do1 = nn.Dropout(drop_rate)
+        self.do2 = nn.Dropout(drop_rate) 
+        self.ac1 = nn.LeakyReLU()
+    
+    def forward(self, X):
+        X = self.bn1(X)
+        out = self.do1(X)
+        out = self.fc1(out)
+
+        out = self.bn2(out)
+        out = self.ac1(out)
+        out = self.do2(out)
+        out = self.fc2(out)
+
+        out = self.bn3(out)
+        out = self.ac1(out)
+        out = self.do2(out)
+        out = self.fc3(out)
+
+        return out
+
 
 class _MLP_B(nn.Module):
     def __init__(self, in_size, drop_rate, fil_num):
