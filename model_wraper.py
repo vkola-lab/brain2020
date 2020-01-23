@@ -236,7 +236,6 @@ class MLP_Wrapper_A(CNN_Wraper):
         self.Data_dir = './DPMs/fcn_exp{}/'.format(exp_idx)
         self.prepare_dataloader(batch_size, balanced, self.Data_dir)
         self.model = _MLP_A(in_size=self.in_size, fil_num=fil_num, drop_rate=drop_rate)
-        print(self.in_size)
 
     def prepare_dataloader(self, batch_size, balanced, Data_dir):
         train_data = MLP_Data(Data_dir, self.exp_idx, stage='train', roi_threshold=self.roi_threshold, roi_count=self.roi_count, choice=self.choice, seed=self.seed)
@@ -308,15 +307,15 @@ class MLP_Wrapper_A(CNN_Wraper):
                     preds = self.model(inputs)
                     write_raw_score(f, preds, labels)
                     matrix = matrix_sum(matrix, get_confusion_matrix(preds, labels))
-                print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
+                # print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
                 accu_list.append(self.eval_metric(matrix))
         return accu_list
 
 
 class MLP_Wrapper_B(MLP_Wrapper_A):
-    def __init__(self, imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold):
-        super().__init__(imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold)
+    def __init__(self, imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold, roi_count, choice):
+        super().__init__(imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold, roi_count, choice)
         self.model = _MLP_B(in_size=4, fil_num=fil_num, drop_rate=drop_rate)
     
     def train_model_epoch(self):
@@ -363,7 +362,7 @@ class MLP_Wrapper_B(MLP_Wrapper_A):
 class MLP_Wrapper_C(MLP_Wrapper_A):
     def __init__(self, imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold, roi_count, choice):
         super().__init__(imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold, roi_count, choice)
-        self.model = _MLP_C(in_size=self.in_size+4, fil_num=fil_num, drop_rate=drop_rate).cuda()
+        self.model = _MLP_C(in_size=self.in_size+4, fil_num=fil_num, drop_rate=drop_rate)
     
     def train_model_epoch(self):
         self.model.train(True)

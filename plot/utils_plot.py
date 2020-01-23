@@ -73,13 +73,15 @@ def plot_legend(axes, crv_lgd_hdl, crv_info, neo_lgd_hdl):
             hdl[ds] += neo_lgd_hdl[ds]
             val[ds] += ['Neurologist', 'Avg. Neurologist']
 
+    convert = {'A':"MRI", 'B':"NoI", 'C':"FUS"}
+
     for ds in ds_name:
         for m in m_name:
             hdl[ds].append(crv_lgd_hdl[m][ds])
-            val[ds].append('{}: {:.3f} $\pm$ {:.3f}'.format(m, crv_info[m][ds]['auc_mean'], crv_info[m][ds]['auc_std']))
+            val[ds].append('{}: {:.3f}$\pm${:.3f}'.format(convert[m], crv_info[m][ds]['auc_mean'], crv_info[m][ds]['auc_std']))
 
         axes[ds].legend(hdl[ds], val[ds],
-                        facecolor='w', prop=dict(weight='bold'),  # frameon=False,
+                        facecolor='w', prop={"weight":'bold', "size":17},  # frameon=False,
                         bbox_to_anchor=(0.04, 0.04, 0.5, 0.5),
                         loc='lower left')
 

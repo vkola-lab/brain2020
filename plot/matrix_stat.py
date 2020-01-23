@@ -46,12 +46,12 @@ def stat_metric(matrices):
     print('F1   {0:.4f}+/-{1:.4f}'.format(float(np.mean(F1)),   float(np.std(F1))))
     print('MCC  {0:.4f}+/-{1:.4f}'.format(float(np.mean(MCC)), float(np.std(MCC))))
 
-
-Matrix = []
-for i in range(10):
-    labels, scores = read_raw_score('../checkpoint_dir/Vol_RF/raw_score_{}.txt'.format(i))  
-    Matrix.append(confusion_matrix(labels, scores))
-stat_metric(Matrix)
+if __name__ == "__main__":
+    Matrix = []
+    for i in range(10):
+        labels, scores = read_raw_score('../checkpoint_dir/Vol_RF/raw_score_{}.txt'.format(i))
+        Matrix.append(confusion_matrix(labels, scores))
+    stat_metric(Matrix)
 
 
 
