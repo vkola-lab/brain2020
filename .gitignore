@@ -5,6 +5,6 @@
 /output/*
 /DPMs/*
 *.pyc
-*.txt
 *.tif
 .*
+*.txt
