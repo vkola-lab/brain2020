@@ -56,15 +56,18 @@ class _CNN(nn.Module):
             nn.Linear(30, 2),
         )
 
-    def forward(self, x):
+    def forward(self, x, stage='normal'):
         x = self.block1(x)
         x = self.block2(x)
         x = self.block3(x)
         x = self.block4(x)
         batch_size = x.shape[0]
         x = x.view(batch_size, -1)
-        x = self.classifier(x)
-        return x
+        if stage == 'get_features':
+            return x
+        else:
+            x = self.classifier(x)
+            return x
 
 
 class _FCN(nn.Module):

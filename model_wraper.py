@@ -74,6 +74,29 @@ class CNN_Wraper:
                 print(stage + ' confusion matrix ', matrix, ' accuracy ', self.eval_metric(matrix))
                 f.close()
 
+    def gen_features(self):
+        self.model.load_state_dict(
+            torch.load('{}{}_{}.pth'.format(self.checkpoint_dir, self.model_name, self.optimal_epoch)))
+        self.model.train(False)
+        self.feature_dir = './DPMs/{}_exp{}/'.format(self.model_name, self.exp_idx)
+        if not os.path.exists(self.feature_dir):
+            os.mkdir(self.feature_dir)
+        with torch.no_grad():
+            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                if stage in ['AIBL', 'NACC', 'FHS']:
+                    Data_dir = '/data/datasets/{}_NoBack/'.format(stage)
+                else:
+                    Data_dir = '/data/datasets/ADNI_NoBack/'
+                data = CNN_Data(Data_dir, self.exp_idx, stage=stage, seed=self.seed)
+                filenames = data.Data_list
+                dataloader = DataLoader(data, batch_size=10, shuffle=False)
+                matrix = [[0, 0], [0, 0]]
+                for idx, (inputs, labels) in enumerate(dataloader):
+                    inputs, labels = inputs.cuda(), labels.cuda()
+                    preds = self.model(inputs, stage="get_features")
+                    np.save(self.feature_dir + filenames[idx] + '.npy', preds)
+
+
     def save_checkpoint(self, valid_matrix):
         if self.eval_metric(valid_matrix) >= self.optimal_valid_metric:
             self.optimal_epoch = self.epoch
