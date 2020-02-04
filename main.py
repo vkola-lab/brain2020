@@ -13,7 +13,7 @@ if False: # if need to re-split the data
 def cnn_main():
     # CNN training and validation
     cnn_setting = config['cnn']
-    for exp_idx in range(repe_time):
+    for exp_idx in range(5):
         cnn = CNN_Wraper(fil_num        = cnn_setting['fil_num'], 
                         drop_rate       = cnn_setting['drop_rate'], 
                         batch_size      = cnn_setting['batch_size'], 
@@ -26,7 +26,9 @@ def cnn_main():
         cnn.train(lr     = cnn_setting['learning_rate'],
                   epochs = cnn_setting['train_epochs'])
         cnn.test()
-    
+        cnn.gen_features()
+
+
 def fcn_main():
     fcn_setting = config['fcn']
     for exp_idx in range(5):
@@ -100,9 +102,10 @@ def mlp_C_main(seed):
 
 if __name__ == "__main__":
     config = read_json('./config.json')
-    with torch.cuda.device(3):
-        for seed in range(1):
-            mlp_A_main(seed)
+    with torch.cuda.device(2):
+        cnn_main()
+        # for seed in range(1):
+        #     mlp_A_main(seed)
         
 
 

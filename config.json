@@ -45,7 +45,40 @@
         "choice":               "count",
         "learning_rate":        0.01,
         "train_epochs":         300
-    }, 
+    },
+    "mlp_D": {
+        "imbalan_ratio":        1.0,
+        "fil_num":              8,
+        "drop_rate":            0.5,
+        "batch_size":           8,
+        "balanced":             0,
+        "learning_rate":        0.1,
+        "train_epochs":         300
+    },
+    "mlp_E": {
+        "imbalan_ratio":        1.0,
+        "fil_num":              8,
+        "drop_rate":            0.5,
+        "batch_size":           8,
+        "balanced":             0,
+        "roi_threshold":        0.6,
+        "roi_count":            200,
+        "choice":               "thres",
+        "learning_rate":        0.1,
+        "train_epochs":         300
+    },
+    "mlp_F": {
+        "imbalan_ratio":        1.0,
+        "fil_num":              100,
+        "drop_rate":            0.5,
+        "batch_size":           8,
+        "balanced":             0,
+        "roi_threshold":        0.6,
+        "roi_count":            200,
+        "choice":               "count",
+        "learning_rate":        0.01,
+        "train_epochs":         300
+    },
     "cnn": {
         "fil_num":              20,
         "drop_rate":            0.137,

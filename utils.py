@@ -138,6 +138,25 @@ def read_csv_complete(filename):
     return filenames, labels, demors
 
 
+def read_csv_complete_apoe(filename):
+    with open(filename, 'r') as f:
+        reader = csv.reader(f)
+        your_list = list(reader)
+    filenames, labels, demors = [], [], []
+    for line in your_list:
+        try:
+            demor = list(map(float, line[2:6]))
+            gender = [0, 1] if demor[1] == 1 else [1, 0]
+            demor = [(demor[0] - 70.0) / 10.0] + gender + [(demor[2] - 27) / 2] + [demor[3]]
+        except:
+            continue
+        filenames.append(line[0])
+        label = 0 if line[1] == 'NL' else 1
+        labels.append(label)
+        demors.append(demor)
+    return filenames, labels, demors
+
+
 def data_split(repe_time):
     with open('./lookupcsv/ADNI.csv', 'r') as f:
         reader = csv.reader(f)

@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from utils import PatchGenerator, padding, read_csv, read_csv_complete, get_AD_risk
+from utils import PatchGenerator, padding, read_csv, read_csv_complete, read_csv_complete_apoe, get_AD_risk
 import random
 import pandas as pd
 import csv
@@ -89,10 +89,10 @@ class MLP_Data(Dataset):
         else:
             self.select_roi_thres()
         if stage in ['train', 'valid', 'test']:
-            path = './lookupcsv/exp{}/{}.csv'.format(exp_idx, stage)
+            self.path = './lookupcsv/exp{}/{}.csv'.format(exp_idx, stage)
         else:
-            path = './lookupcsv/{}.csv'.format(stage)
-        self.Data_list, self.Label_list, self.demor_list = read_csv_complete(path)
+            self.path = './lookupcsv/{}.csv'.format(stage)
+        self.Data_list, self.Label_list, self.demor_list = read_csv_complete(self.path)
         self.risk_list = [get_AD_risk(np.load(Data_dir+filename+'.npy'))[self.roi] for filename in self.Data_list]
         self.in_size = self.risk_list[0].shape[0]
         
@@ -134,8 +134,47 @@ class MLP_Data(Dataset):
         return weights, count0 / count1
 
 
+class MLP_Data_apoe(MLP_Data):
+    def __init__(self, Data_dir, exp_idx, stage, roi_threshold, roi_count, choice, seed=1000):
+        super().__init__(Data_dir, exp_idx, stage, roi_threshold, roi_count, choice, seed)
+        self.Data_list, self.Label_list, self.demor_list = read_csv_complete_apoe(self.path)
+
+
+class CNN_MLP_Data(Dataset):
+    def __init__(self, Data_dir, exp_idx, stage, seed=1000):
+        random.seed(seed)
+        self.exp_idx = exp_idx
+        self.Data_dir = Data_dir
+        if stage in ['train', 'valid', 'test']:
+            path = './lookupcsv/exp{}/{}.csv'.format(exp_idx, stage)
+        else:
+            path = './lookupcsv/{}.csv'.format(stage)
+        self.Data_list, self.Label_list, self.demor_list = read_csv_complete(path)
+        self.risk_list = [np.load(Data_dir + filename + '.npy') for filename in self.Data_list]
+        self.risk_list = [self.rescale(a) for a in self.risk_list]
+        self.in_size = self.risk_list[0].shape[0]
+
+    def __len__(self):
+        return len(self.Data_list)
+
+    def __getitem__(self, idx):
+        label = self.Label_list[idx]
+        risk = self.risk_list[idx]
+        demor = self.demor_list[idx]
+        return risk, label, np.asarray(demor).astype(np.float32)
+
+    def rescale(self, x):
+        return (x + 8) / 20.0
+
+    def get_sample_weights(self):
+        count, count0, count1 = float(len(self.Label_list)), float(self.Label_list.count(0)), float(
+            self.Label_list.count(1))
+        weights = [count / count0 if i == 0 else count / count1 for i in self.Label_list]
+        return weights, count0 / count1
+
+
 if __name__ == "__main__":
-    data = MLP_Data(Data_dir='./DPMs/fcn_exp1/', exp_idx=1, stage='train', roi_threshold=0.6)
+    data = CNN_MLP_Data(Data_dir='./DPMs/cnn_exp1/', exp_idx=1, stage='train')
     dataloader = DataLoader(data, batch_size=10, shuffle=False)
     for risk, label, demor in dataloader:
         print(risk.shape, label, demor)

@@ -48,9 +48,11 @@ class _CNN(nn.Module):
         self.block2 = ConvLayer(fil_num, 2*fil_num, 0.1, (4, 1, 0), (2, 2, 0))
         self.block3 = ConvLayer(2*fil_num, 4*fil_num, 0.1, (3, 1, 0), (2, 2, 0))
         self.block4 = ConvLayer(4*fil_num, 8*fil_num, 0.1, (3, 1, 0), (2, 1, 0))
-        self.classifier = nn.Sequential(
+        self.dense1 = nn.Sequential(
             nn.Dropout(drop_rate),
             nn.Linear(8*fil_num*6*8*6, 30),
+        )
+        self.dense2 = nn.Sequential(
             nn.LeakyReLU(),
             nn.Dropout(drop_rate),
             nn.Linear(30, 2),
@@ -63,10 +65,11 @@ class _CNN(nn.Module):
         x = self.block4(x)
         batch_size = x.shape[0]
         x = x.view(batch_size, -1)
+        x = self.dense1(x)
         if stage == 'get_features':
             return x
         else:
-            x = self.classifier(x)
+            x = self.dense2(x)
             return x
 
 
@@ -132,6 +135,7 @@ class _FCN(nn.Module):
 
 
 class _MLP_A(nn.Module):
+    "MLP that only use DPMs from fcn"
     def __init__(self, in_size, drop_rate, fil_num):
         super(_MLP_A, self).__init__()
         self.bn1 = nn.BatchNorm1d(in_size)   
@@ -153,38 +157,8 @@ class _MLP_A(nn.Module):
         return out
 
 
-class _MLP_A1(nn.Module):
-    def __init__(self, in_size, drop_rate, fil_num1, fil_num2):
-        super(_MLP_A, self).__init__()
-        self.bn1 = nn.BatchNorm1d(in_size)   
-        self.bn2 = nn.BatchNorm1d(fil_num1)  
-        self.bn3 = nn.BatchNorm1d(fil_num2)  
-        self.fc1 = nn.Linear(in_size, fil_num1)
-        self.fc2 = nn.Linear(fil_num1, fil_num2)
-        self.fc3 = nn.Linear(fil_num2, 2)
-        self.do1 = nn.Dropout(drop_rate)
-        self.do2 = nn.Dropout(drop_rate) 
-        self.ac1 = nn.LeakyReLU()
-    
-    def forward(self, X):
-        X = self.bn1(X)
-        out = self.do1(X)
-        out = self.fc1(out)
-
-        out = self.bn2(out)
-        out = self.ac1(out)
-        out = self.do2(out)
-        out = self.fc2(out)
-
-        out = self.bn3(out)
-        out = self.ac1(out)
-        out = self.do2(out)
-        out = self.fc3(out)
-
-        return out
-
-
 class _MLP_B(nn.Module):
+    "MLP that only use age gender MMSE"
     def __init__(self, in_size, drop_rate, fil_num):
         super(_MLP_B, self).__init__()        
         self.fc1 = nn.Linear(in_size, fil_num)
@@ -203,6 +177,7 @@ class _MLP_B(nn.Module):
 
 
 class _MLP_C(nn.Module):
+    "MLP that use DPMs from fcn and age, gender and MMSE"
     def __init__(self, in_size, drop_rate, fil_num):
         super(_MLP_C, self).__init__()        
         self.fc1 = nn.Linear(in_size, fil_num)
@@ -221,4 +196,21 @@ class _MLP_C(nn.Module):
         return out
 
 
+class _MLP_D(nn.Module):
+    "MLP that use cnn features and age, gender and MMSE"
+    def __init__(self, in_size, drop_rate, fil_num):
+        super(_MLP_D, self).__init__()
+        self.fc1 = nn.Linear(in_size, fil_num)
+        self.fc2 = nn.Linear(fil_num, 2)
+        self.do1 = nn.Dropout(drop_rate)
+        self.do2 = nn.Dropout(drop_rate)
+        self.ac1 = nn.LeakyReLU()
 
+    def forward(self, X1, X2):
+        X = torch.cat((X1, X2), 1)
+        out = self.do1(X)
+        out = self.fc1(out)
+        out = self.ac1(out)
+        out = self.do2(out)
+        out = self.fc2(out)
+        return out

@@ -20,6 +20,10 @@ def gen_features():
         cnn.gen_features()
 
 
+
+
 if __name__ == "__main__":
+    config = read_json('./config.json')
+    seed = 1000
     gen_features()
 
