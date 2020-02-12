@@ -7,20 +7,6 @@ import random
 import copy
 
 
-"""
-models are defined in this scripts:
-
-    1. FCN
-        (a). details
-
-    2. MLP 
-        (a). details
-
-    3. CNN 
-        (a). details
-        
-"""
-
 class ConvLayer(nn.Module):
     def __init__(self, in_channels, out_channels, drop_rate, kernel, pooling, BN=True, relu_type='leaky'):
         super().__init__()
@@ -160,13 +146,13 @@ class _MLP_A(nn.Module):
 class _MLP_B(nn.Module):
     "MLP that only use age gender MMSE"
     def __init__(self, in_size, drop_rate, fil_num):
-        super(_MLP_B, self).__init__()        
+        super(_MLP_B, self).__init__()
         self.fc1 = nn.Linear(in_size, fil_num)
         self.fc2 = nn.Linear(fil_num, 2)
         self.do1 = nn.Dropout(drop_rate)
-        self.do2 = nn.Dropout(drop_rate) 
+        self.do2 = nn.Dropout(drop_rate)
         self.ac1 = nn.LeakyReLU()
-    
+
     def forward(self, X):
         out = self.do1(X)
         out = self.fc1(out)
@@ -179,13 +165,13 @@ class _MLP_B(nn.Module):
 class _MLP_C(nn.Module):
     "MLP that use DPMs from fcn and age, gender and MMSE"
     def __init__(self, in_size, drop_rate, fil_num):
-        super(_MLP_C, self).__init__()        
+        super(_MLP_C, self).__init__()
         self.fc1 = nn.Linear(in_size, fil_num)
         self.fc2 = nn.Linear(fil_num, 2)
         self.do1 = nn.Dropout(drop_rate)
-        self.do2 = nn.Dropout(drop_rate) 
+        self.do2 = nn.Dropout(drop_rate)
         self.ac1 = nn.LeakyReLU()
-    
+
     def forward(self, X1, X2):
         X = torch.cat((X1, X2), 1)
         out = self.do1(X)

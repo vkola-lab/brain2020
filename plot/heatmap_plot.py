@@ -46,7 +46,7 @@ def plot_heatmap(path, exp_idx, figsize):
 
     im = grid[0].imshow(MRI[:, :, 40].transpose((1, 0))[::-1, :], cmap = 'gray', vmin=-1, vmax=2.5)
     grid[0].axis('off')
-    grid[0].set_title("(a)   MRI    ", fontdict=font_dict, loc='right', color = "k")
+    grid[0].set_title("   MRI    ", fontdict=font_dict, loc='right', color = "k")
 
     for idx, heatmap in enumerate([heat_train, heat_valid, heat_test, heat_AIBL, heat_FHS, heat_NACC]):
         im = grid[1+idx].imshow(heatmap[:, :, 40].transpose((1, 0))[::-1, :], cmap = 'hot', vmin=small, vmax=1.0)
@@ -100,7 +100,7 @@ def plot_complete_heatmap(path, exp_idx, figsize):
             im = grid[step*16+i+8].imshow(risk[:, :, 7*(i+step*8)].transpose((1, 0))[::-1, :], cmap = 'hot', vmin=small, vmax=1.0)
             grid[step*16+i+8].axis('off')
 
-    grid[0].set_title('(b)', fontdict=font_dict, loc='right', color = "k")
+    # grid[0].set_title('(b)', fontdict=font_dict, loc='right', color = "k")
     # cbar = grid[9].cax.colorbar(im, drawedges=False)
     # for l in cbar.ax.yaxis.get_ticklabels():
     #     l.set_weight("bold")
@@ -121,7 +121,7 @@ def plot_complete_heatmap(path, exp_idx, figsize):
             im = grid[step * 16 + i + 8].imshow(np.rot90(risk[:, 15+7*(i+step*8), :]), cmap = 'hot', vmin=small, vmax=1.0)
             grid[step * 16 + i + 8].axis('off')
 
-    grid[0].set_title('(c)', fontdict=font_dict, loc='right', color = "k")
+    # grid[0].set_title('(c)', fontdict=font_dict, loc='right', color = "k")
     fig.savefig('./supple_heatmap_coronal{}.tif'.format(exp_idx), dpi=300)
 
     # sagittal plot
@@ -138,7 +138,7 @@ def plot_complete_heatmap(path, exp_idx, figsize):
             im = grid[step * 16 + i + 8].imshow(resize(np.rot90(risk[7 * (i + step * 8), :, :])), cmap = 'hot', vmin=small, vmax=1.0)
             grid[step * 16 + i + 8].axis('off')
 
-    grid[0].set_title('(d)', fontdict=font_dict, loc='right', color = "k")
+    # grid[0].set_title('(d)', fontdict=font_dict, loc='right', color = "k")
     fig.savefig('./supple_heatmap_sagittal{}.tif'.format(exp_idx), dpi=300)
 
 

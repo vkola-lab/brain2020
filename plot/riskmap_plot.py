@@ -33,7 +33,7 @@ def plot_riskmap(path, figsize):
                      )
 
     font_dict = {'fontweight': 'bold', 'fontsize': 14}
-    titlename = ['(a)  AD subject 1  ', '  AD subject 2  ', '  NL subject 1  ', '  NL subject 2  ']
+    titlename = ['  AD subject 1  ', '  AD subject 2  ', '  NL subject 1  ', '  NL subject 2  ']
 
     for i in range(4):
         im = grid[i*2].imshow(MRIs[i][:, :, 40].transpose((1, 0))[::-1, :], cmap='gray', vmin=-1, vmax=2.5)
@@ -85,7 +85,7 @@ def plot_complete_riskmap(path, figsize):
             grid[step*16+i].axis('off')
             im = grid[step*16+i+8].imshow(risk[:, :, 7*(i+step*8)].transpose((1, 0))[::-1, :], cmap='bwr', vmin=0, vmax=1)
             grid[step*16+i+8].axis('off')
-    grid[0].set_title('(b)', fontdict=font_dict, loc='right', color = "k")
+    # grid[0].set_title('(b)', fontdict=font_dict, loc='right', color = "k")
     # cbar = grid[9].cax.colorbar(im, drawedges=False)
     # for l in cbar.ax.yaxis.get_ticklabels():
     #     l.set_weight("bold")
@@ -109,7 +109,7 @@ def plot_complete_riskmap(path, figsize):
             grid[step * 16 + i].axis('off')
             im = grid[step * 16 + i + 8].imshow(np.rot90(risk[:, 15+7*(i+step*8), :]), cmap='bwr', vmin=0, vmax=1)
             grid[step * 16 + i + 8].axis('off')
-    grid[0].set_title('(c)', fontdict=font_dict, loc='right', color = "k")
+    # grid[0].set_title('(c)', fontdict=font_dict, loc='right', color = "k")
     # cbar = grid[9].cax.colorbar(im, drawedges=False)
     # for l in cbar.ax.yaxis.get_ticklabels():
     #     l.set_weight("bold")
@@ -133,7 +133,7 @@ def plot_complete_riskmap(path, figsize):
             grid[step * 16 + i].axis('off')
             im = grid[step * 16 + i + 8].imshow(resize(np.rot90(risk[7 * (i + step * 8), :, :])), cmap='bwr', vmin=0, vmax=1)
             grid[step * 16 + i + 8].axis('off')
-    grid[0].set_title('(d)', fontdict=font_dict, loc='right', color = "k")
+    # grid[0].set_title('(d)', fontdict=font_dict, loc='right', color = "k")
     # cbar = grid[9].cax.colorbar(im, drawedges=False)
     # for l in cbar.ax.yaxis.get_ticklabels():
     #     l.set_weight("bold")

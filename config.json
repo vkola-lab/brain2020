@@ -1,5 +1,5 @@
 {
-    "repeat_time":              1,
+    "repeat_time":              5,
     "fcn":{
         "fil_num":              20,
         "drop_rate":            0.5,

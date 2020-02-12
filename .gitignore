@@ -1,10 +1,10 @@
 # exclude everything in directory __pycache__/
 /__pycache__/*
-/checkpoint_dir/*
 /mongodb/*
 /output/*
 /DPMs/*
+/plot/*
 *.pyc
 *.tif
 .*
-*.txt
+.png

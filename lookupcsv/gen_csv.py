@@ -14,9 +14,9 @@ age = read_txt(path + 'NACC_Age.txt')
 gender = read_txt(path + 'NACC_GENDER.txt')
 mmse = read_txt(path + 'NACC_MMSE.txt')
 apoe = read_txt(path + 'NACC_Apoe.txt')
-check = read_txt(path + 'NACC_Check_FCN.txt')
+check = read_txt(path + 'NACC_Check_MLP.txt')
 
-with open('NACC.csv', 'w') as csvfile:
+with open('NACC_MLP.csv', 'w') as csvfile:
     fieldnames = ['filename', 'status', 'age', 'gender', 'mmse', 'apoe']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()

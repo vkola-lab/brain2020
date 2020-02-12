@@ -26,6 +26,7 @@ def mlp_A_train(exp_idx, repe_time, accu, config):
         accu['A']['AIBL'].append(accu_AIBL)
         accu['A']['FHS'].append(accu_FHS)
 
+
 def mlp_B_train(exp_idx, repe_time, accu, config):
     mlp_setting = config
     for i in range(repe_time):
@@ -39,7 +40,7 @@ def mlp_B_train(exp_idx, repe_time, accu, config):
                             choice=mlp_setting['choice'],
                             exp_idx=exp_idx,
                             seed=seed+i,
-                            model_name='mlp_B',
+                            model_name='mlp_B_BN',
                             metric='accuracy')
         mlp.train(lr=mlp_setting['learning_rate'],
                   epochs=mlp_setting['train_epochs'])
@@ -48,6 +49,7 @@ def mlp_B_train(exp_idx, repe_time, accu, config):
         accu['B']['NACC'].append(accu_NACC)
         accu['B']['AIBL'].append(accu_AIBL)
         accu['B']['FHS'].append(accu_FHS)
+
 
 def mlp_C_train(exp_idx, repe_time, accu, config):
     mlp_setting = config
@@ -62,7 +64,7 @@ def mlp_C_train(exp_idx, repe_time, accu, config):
                             choice=mlp_setting['choice'],
                             exp_idx=exp_idx,
                             seed=seed+i,
-                            model_name='mlp_C',
+                            model_name='mlp_C_BN',
                             metric='accuracy')
         mlp.train(lr=mlp_setting['learning_rate'],
                   epochs=mlp_setting['train_epochs'])
@@ -172,6 +174,40 @@ def mlp():
           'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['FHS'])), float(np.std(accu['B']['FHS']))), \
           'C {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['C']['FHS'])), float(np.std(accu['C']['FHS']))))
 
+##############################################################################################
+# roi count meshgrid
+def mlp_A_valid(exp_idx, repe_time, accu, config):
+    mlp_setting = config
+    for i in range(repe_time):
+        mlp = MLP_Wrapper_A(imbalan_ratio=mlp_setting['imbalan_ratio'],
+                            fil_num=mlp_setting['fil_num'],
+                            drop_rate=mlp_setting['drop_rate'],
+                            batch_size=mlp_setting['batch_size'],
+                            balanced=mlp_setting['balanced'],
+                            roi_threshold=mlp_setting['roi_threshold'],
+                            roi_count=mlp_setting['roi_count'],
+                            choice=mlp_setting['choice'],
+                            exp_idx=exp_idx,
+                            seed=seed+i,
+                            model_name='mlp_A_non_filter',
+                            metric='accuracy')
+        mlp.train(lr=mlp_setting['learning_rate'],
+                  epochs=mlp_setting['train_epochs'])
+        accu_valid = mlp.test(i)[1]
+        accu['A']['valid'].append(accu_valid)
+
+
+def mlp_A_count(config):
+    print('##################################################')
+    print(config)
+    accu = {'A':{'valid':[]}}
+    for exp_idx in range(5):
+        mlp_A_valid(exp_idx, 1, accu, config)
+    print('ADNI valid accuracy ',
+          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['valid'])), float(np.std(accu['A']['valid']))))
+# roi count meshgrid
+###################################################################################################
+
 
 def mlp_A(config):
     print('##################################################')
@@ -195,7 +231,6 @@ def mlp_B(config):
     print(config)
     accu = {'B':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
     for exp_idx in range(5):
-        #print(exp_idx)
         mlp_B_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['test'])), float(np.std(accu['B']['test']))))
@@ -274,10 +309,19 @@ def mlp_F(config):
 if __name__ == "__main__":
     config = read_json('./config.json')
     seed = 1000
+
+    # config['mlp_A']['choice'] = 'thres'
+    # config['mlp_A']['roi_threshold'] = -2
+    # mlp_A_count(config['mlp_A'])
+
+    # for count in [20, 50, 100, 200, 400, 800, 1600]:
+    #     config['mlp_A']["roi_count"] = count
+    #     mlp_A_count(config['mlp_A'])
+
     # mlp_A(config["mlp_A"])
     # mlp_B(config["mlp_B"])
-    # mlp_C(config["mlp_C"])
-    mlp_D(config["mlp_D"])
+    mlp_C(config["mlp_C"])
+    # mlp_D(config["mlp_D"])
     # mlp_E(config["mlp_E"])
     # mlp_F(config['mlp_F'])
 

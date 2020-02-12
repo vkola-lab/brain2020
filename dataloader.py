@@ -99,11 +99,11 @@ class MLP_Data(Dataset):
     def select_roi_thres(self):
         self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
         self.roi = self.roi > self.roi_threshold
-        for i in range(self.roi.shape[0]):
-            for j in range(self.roi.shape[1]):
-                for k in range(self.roi.shape[2]):
-                    if i%3!=0 or j%2!=0 or k%3!=0:
-                        self.roi[i,j,k] = False
+        # for i in range(self.roi.shape[0]):
+        #     for j in range(self.roi.shape[1]):
+        #         for k in range(self.roi.shape[2]):
+        #             if i%3!=0 or j%2!=0 or k%3!=0:
+        #                 self.roi[i,j,k] = False
 
     def select_roi_count(self):
         self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))

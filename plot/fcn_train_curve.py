@@ -18,19 +18,22 @@ with open(log_file, 'r') as f:
 
 Lists = np.array(Lists)
 print(Lists.shape)
-ave, std = [], []
+groups, ave, std = [], [], []
 
-for i in range(150//3):
-    group = Lists[:, i*3:i*3+3].reshape(15, -1)
+g = 5
+
+for i in range(150//g):
+    group = Lists[:, i*g:i*g+g].reshape(g*5, -1)
+    groups.append(group)
     ave.append(np.mean(group))
     std.append(np.std(group))
 
-x = [i*20*3 for i in range(len(ave))]
+x = [i*20*g for i in range(len(ave))]
 
-plt.plot(x, ave)
-plt.errorbar(x, ave, yerr=std, marker='s', mfc='red', fmt='', capsize=2)
+# plt.errorbar(x, ave, yerr=std, marker='s', mfc='red', fmt='', capsize=2)
 plt.xlabel('Number of patches', fontsize=12, weight='bold')
 plt.ylabel('Average validation accuracy', fontsize=12, weight='bold')
+plt.boxplot(groups)
 plt.savefig('fcn_train_plot.tif', dpi=300)
 plt.show()
 
