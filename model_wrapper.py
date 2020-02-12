@@ -30,6 +30,7 @@ class CNN_Wrapper:
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx, model_name, metric):
         self.seed = seed
         self.exp_idx = exp_idx
+        self.Data_dir = Data_dir
         self.model_name = model_name
         self.eval_metric = get_accu if metric == 'accuracy' else get_MCC
         self.model = _CNN(fil_num=fil_num, drop_rate=drop_rate).cuda()
@@ -58,10 +59,9 @@ class CNN_Wrapper:
         self.model.train(False)
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                Data_dir = self.Data_dir
                 if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = '/data/datasets/{}_NoBack/'.format(stage)
-                else:
-                    Data_dir = '/data/datasets/ADNI_NoBack/'
+                    Data_dir = Data_dir.replace('ADNI', stage)
                 data = CNN_Data(Data_dir, self.exp_idx, stage=stage, seed=self.seed)
                 dataloader = DataLoader(data, batch_size=10, shuffle=False)
                 f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
@@ -83,10 +83,9 @@ class CNN_Wrapper:
             os.mkdir(self.feature_dir)
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                Data_dir = self.Data_dir
                 if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = '/data/datasets/{}_NoBack/'.format(stage)
-                else:
-                    Data_dir = '/data/datasets/ADNI_NoBack/'
+                    Data_dir = Data_dir.replace('ADNI', stage)
                 data = CNN_Data(Data_dir, self.exp_idx, stage=stage, seed=self.seed)
                 filenames = data.Data_list
                 dataloader = DataLoader(data, batch_size=1, shuffle=False)
@@ -154,6 +153,7 @@ class FCN_Wrapper(CNN_Wrapper):
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx, model_name, metric, patch_size):
         self.seed = seed
         self.exp_idx = exp_idx
+        self.Data_dir = Data_dir
         self.patch_size = patch_size
         self.model_name = model_name
         self.eval_metric = get_accu if metric == 'accuracy' else get_MCC
@@ -220,10 +220,9 @@ class FCN_Wrapper(CNN_Wrapper):
         self.fcn.train(False)
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+                Data_dir = self.Data_dir
                 if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = '/data/datasets/{}_NoBack/'.format(stage)
-                else:
-                    Data_dir = '/data/datasets/ADNI_NoBack/'
+                    Data_dir = Data_dir.replace('ADNI', stage)
                 data = FCN_Data(Data_dir, self.exp_idx, stage=stage, whole_volume=True, seed=self.seed, patch_size=self.patch_size)
                 filenames = data.Data_list
                 dataloader = DataLoader(data, batch_size=1, shuffle=False)

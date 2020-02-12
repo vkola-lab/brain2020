@@ -3,7 +3,6 @@ import os
 import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
 from utils import PatchGenerator, padding, read_csv, read_csv_complete, read_csv_complete_apoe, get_AD_risk
 import random
 import pandas as pd
@@ -32,7 +31,6 @@ dataloaders are defined in this scripts:
 class CNN_Data(Dataset):
     """
     csv files ./lookuptxt/*.csv contains MRI filenames along with demographic and diagnosis information 
-    MRI with clip and backremove: /data/datasets/ADNI_NoBack/*.npy
     """
     def __init__(self, Data_dir, exp_idx, stage, seed=1000):
         random.seed(seed)
@@ -99,11 +97,11 @@ class MLP_Data(Dataset):
     def select_roi_thres(self):
         self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
         self.roi = self.roi > self.roi_threshold
-        # for i in range(self.roi.shape[0]):
-        #     for j in range(self.roi.shape[1]):
-        #         for k in range(self.roi.shape[2]):
-        #             if i%3!=0 or j%2!=0 or k%3!=0:
-        #                 self.roi[i,j,k] = False
+        for i in range(self.roi.shape[0]):
+            for j in range(self.roi.shape[1]):
+                for k in range(self.roi.shape[2]):
+                    if i%3!=0 or j%2!=0 or k%3!=0:
+                        self.roi[i,j,k] = False
 
     def select_roi_count(self):
         self.roi = np.load('./DPMs/fcn_exp{}/train_MCC.npy'.format(self.exp_idx))
