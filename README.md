@@ -1,6 +1,24 @@
-# Development and validation of a deep learning framework for Alzheimers disease classification
+# Development and validation of an interpretable deep learning framework for Alzheimer’s disease classification
 
-This repo contains a PyTorch implementation of a deep learning framework for Alzheimer's disease classification using volumetric brain MR images. This framework comprises a fully convolutional network (FCN) and a multilayer perceptron (MLP) model. The FCN generates a novel 3D visualization of the disease affected regions. We refer to them as disease probability map (DPM) in our paper. Features taken from the DPMs are then sent into the MLP model to achieve an overall classification of AD status. 
+## Introduction
+
+This repo contains a PyTorch implementation of a deep learning framework that delineates explainable Alzheimer’s disease signatures (3D disease risk map) from magnetic resonance imaging which are then integrated with multimodal inputs, including age, gender, and mini-mental state examination score. Our framework links a fully convolutional network (FCN) to a multilayer perceptron. The FCN generates patient specific 3D disease risk map (dense local predictions) see below. 
+
+<img src="plot/riskmap.png" width="425"/> 
+
+The FCN model was developed on ADNI training and validation sets and its performance was evaluated on ADNI testing set, 3 external testing datasets, including NACC, AIBL and FHS datasets. The Matthews correlation coefficient (MCC) values for all locations are shown as MCC heat map to visualize how accurate the FCN is on every locations.  
+
+<img src="plot/heatmap.png" width="425"/> 
+
+The MLP makes final global prediction on the diagnosis results. The predicted high risk regions were compared to neuropath findings as a purpose of verification and correlations between the model predicted regions with the neuropath findings were demonstrated in this work. see below
+
+<img src="plot/neuropath.png" width="395"/>
+
+The performance of the final global prediction from MLP model was compared with 11 neurologists. For the comprehensive comparision of our deep learning framework with other standard models, CNN and random forest models are also included in this repo. See below our FCN + MLP model roc curve.
+
+<img src="plot/roc.png" width="695"/>
+
+Please refer to our paper for more details. 
 
 ## How to use
 
