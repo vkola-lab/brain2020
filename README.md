@@ -54,26 +54,27 @@ The configuration file is a json file which allows you conveniently change hyper
 
 ```json
 {
-    "repeat_time":              5,
+    "repeat_time":              5,                 # how many times you want to do random data split between training and validation 
     "fcn":{
-        "fil_num":              20,
+        "fil_num":              20,                # filter number of the first convolution layer in FCN
         "drop_rate":            0.5,
-        "patch_size":           47,   # 47 has to be fixed, otherwise the FCN model has to change accordingly
+        "patch_size":           47,                # 47 has to be fixed, otherwise the FCN model has to change accordingly
         "batch_size":           10,
-        "balanced":             1,    # to solve data imbalance issue, we provdided two solution: set value to 0 (weighted cross entropy loss), set value to 1 (pytorch sampler samples data with probability according to the category)
-        "Data_dir":             "/data_dir/ADNI/",
+        "balanced":             1,                 # to solve data imbalance issue, we provdided two solution: set value to 0 (weighted cross entropy loss), set value to 1 (pytorch sampler samples data with probability according to the category)
+        "Data_dir":             "/data_dir/ADNI/", # change the path according to you folder name
         "learning_rate":        0.0001,
         "train_epochs":         3000
     },
     "mlp_A": {
-        "imbalan_ratio":        1.0,
-        "fil_num":              100,
+        "imbalan_ratio":        1.0,               # imbalanced weight in weighted corss entropy loss
+        "fil_num":              100,               # first dense layer's output size 
         "drop_rate":            0.5,
         "batch_size":           8,
         "balanced":             0,
-        "roi_threshold":        0.6,
+        "roi_threshold":        0.6,                
         "roi_count":            200,
-        "choice":               "count",
+        "choice":               "count",           # if choice == 'count', then select top #roi_count as ROI
+                                                   # if choice == 'thres', then select value > roi_threshold as ROI
         "learning_rate":        0.01,
         "train_epochs":         300
     }, 
@@ -93,26 +94,37 @@ The configuration file is a json file which allows you conveniently change hyper
 }
 ```
 
-### Train FCN and generate DPM
+### Train, validate and test FCN and CNN models 
 
 ```
-python FCN_main.py -c config.json
+python main.py
 ```
 
-After running above command, the following steps will be performed:
+In the main.py, run function 'fcn_main' will do number of repeat time indepentent FCN model training on random splitted data. Model performance is thus evaluated on all runs as mean +/- std. Disease probability maps will be automatically generated for each independent run in the following folders:
 
-1. An FCN model will be trained from scratch, optimal model weights based on validation accuracy will be stored in the `<repository_root>/FCN_model/` folder.
+```
+DPMs/fcn_exp0/
+DPMs/fcn_exp1/
+...
+DPMs/fcn_expN/
+```
 
-2. After FCN training, DPMs for all subjects will be generated in the `<repository_root>/dpm/` folder with the same organization as `<repository_root>/data/` folder.
+Model weights and predicted raw scores on each subjects will be saved in:
 
-3. To evaluate performance of the FCN model, heatmaps of various metrics will be generated (MCC, F-1, Accuracy, True Positive, False Postive, True negative, False negative) in the ./Heatmap/ folder.
+```
+ckeckpoint_dir/fcn_exp0/
+ckeckpoint_dir/fcn_exp1/
+...
+ckeckpoint_dir/fcn_expN/
+```
 
-### Train MLP with DPM and/or other non-imaging features
+Similarly, run function 'cnn_main' will do number of repeat time indepentent CNN model training on random splitted data. Model performance is thus evaluated on all runs as mean +/- std. Results will be saved in the similiar way as FCN.  
 
-Multilayer Perceptron (MLP) network is a densely connected neural network with one hidden layer. It utilizes DPM along with other non-imaging factors (i.e. age, gender, MMSE etc.) to do AD/NL classification. The MLP routine contains the following steps.
+### Train, validate and test MLP models 
 
-1. Filter DPM. DPM may contain millions of voxels. Dumping all of them into the MLP is unefficient and may even have negative impact on the classification performance. We selected only ~1% voxels that were highly correlated with AD/NL classfication. As to the definition of the "correlation", we believe MCC is practically an ideal metric.
+```
+python mlp_classifiers.py
+```
+Inside mlp_classifiers.py, various MLP models will be trained on different type of features, for more details, please see the comments in the script and refer to our paper. 
 
-2. Choose non-imaging features. Besides DPM, arbitrary combination of the available non-imaging features can also be fed into the MLP. Our experiments shown that DPM with age, gender and MMSE was sufficient to achieve neurologist-level diagnosis.
 
-3. Train model.
