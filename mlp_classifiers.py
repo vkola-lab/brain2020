@@ -2,8 +2,8 @@ from model_wraper import MLP_Wrapper_A, MLP_Wrapper_B, MLP_Wrapper_C, MLP_Wrappe
 from utils import read_json
 import numpy as np
 
-
 def mlp_A_train(exp_idx, repe_time, accu, config):
+    # mlp model build on features selected from disease probability maps generated from FCN
     mlp_setting = config
     for i in range(repe_time):
         mlp = MLP_Wrapper_A(imbalan_ratio=mlp_setting['imbalan_ratio'],
@@ -28,6 +28,7 @@ def mlp_A_train(exp_idx, repe_time, accu, config):
 
 
 def mlp_B_train(exp_idx, repe_time, accu, config):
+    # mlp build on non-imaging features, including age, gender, MMSE
     mlp_setting = config
     for i in range(repe_time):
         mlp = MLP_Wrapper_B(imbalan_ratio=mlp_setting['imbalan_ratio'],
@@ -52,6 +53,7 @@ def mlp_B_train(exp_idx, repe_time, accu, config):
 
 
 def mlp_C_train(exp_idx, repe_time, accu, config):
+    # mlp build on combined features of mlp_A and mlp_B
     mlp_setting = config
     for i in range(repe_time):
         mlp = MLP_Wrapper_C(imbalan_ratio=mlp_setting['imbalan_ratio'],
@@ -75,7 +77,30 @@ def mlp_C_train(exp_idx, repe_time, accu, config):
         accu['C']['FHS'].append(accu_FHS)
 
 
+def mlp_D_train(exp_idx, repe_time, accu, config):
+    # mlp build on CNN dense layer features and non-imaging features (age, gender, MMSE)  
+    mlp_setting = config
+    for i in range(repe_time):
+        mlp = MLP_Wrapper_D(imbalan_ratio=mlp_setting['imbalan_ratio'],
+                            fil_num=mlp_setting['fil_num'],
+                            drop_rate=mlp_setting['drop_rate'],
+                            batch_size=mlp_setting['batch_size'],
+                            balanced=mlp_setting['balanced'],
+                            exp_idx=exp_idx,
+                            seed=seed + i,
+                            model_name='mlp_D',
+                            metric='accuracy')
+        mlp.train(lr=mlp_setting['learning_rate'],
+                  epochs=mlp_setting['train_epochs'])
+        accu_test, accu_AIBL, accu_NACC, accu_FHS = mlp.test(i)[2:]
+        accu['D']['test'].append(accu_test)
+        accu['D']['NACC'].append(accu_NACC)
+        accu['D']['AIBL'].append(accu_AIBL)
+        accu['D']['FHS'].append(accu_FHS)
+
+
 def mlp_E_train(exp_idx, repe_time, accu, config):
+    # mlp build on age, gender, MMSE and apoe
     mlp_setting = config
     for i in range(repe_time):
         mlp = MLP_Wrapper_E(imbalan_ratio=mlp_setting['imbalan_ratio'],
@@ -100,6 +125,7 @@ def mlp_E_train(exp_idx, repe_time, accu, config):
 
 
 def mlp_F_train(exp_idx, repe_time, accu, config):
+    # mlp build on combined features of mlp_A and mlp_E
     mlp_setting = config
     for i in range(repe_time):
         mlp = MLP_Wrapper_F(imbalan_ratio=mlp_setting['imbalan_ratio'],
@@ -123,98 +149,11 @@ def mlp_F_train(exp_idx, repe_time, accu, config):
         accu['F']['FHS'].append(accu_FHS)
 
 
-def mlp_D_train(exp_idx, repe_time, accu, config):
-    mlp_setting = config
-    for i in range(repe_time):
-        mlp = MLP_Wrapper_D(imbalan_ratio=mlp_setting['imbalan_ratio'],
-                            fil_num=mlp_setting['fil_num'],
-                            drop_rate=mlp_setting['drop_rate'],
-                            batch_size=mlp_setting['batch_size'],
-                            balanced=mlp_setting['balanced'],
-                            exp_idx=exp_idx,
-                            seed=seed + i,
-                            model_name='mlp_D',
-                            metric='accuracy')
-        mlp.train(lr=mlp_setting['learning_rate'],
-                  epochs=mlp_setting['train_epochs'])
-        accu_test, accu_AIBL, accu_NACC, accu_FHS = mlp.test(i)[2:]
-        accu['D']['test'].append(accu_test)
-        accu['D']['NACC'].append(accu_NACC)
-        accu['D']['AIBL'].append(accu_AIBL)
-        accu['D']['FHS'].append(accu_FHS)
-
-
-def mlp():
-    accu = {'A':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}, \
-            'B':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}, \
-            'C':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-
-    for exp_idx in range(5):
-        print('B')
-        mlp_B_train(exp_idx, 3, accu)
-        print('C')
-        mlp_C_train(exp_idx, 3, accu)
-        print('A')
-        mlp_A_train(exp_idx, 3, accu)
-
-    print('ADNI test accuracy ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['test'])), float(np.std(accu['A']['test']))), \
-          'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['test'])), float(np.std(accu['B']['test']))), \
-          'C {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['C']['test'])), float(np.std(accu['C']['test']))))
-    print('NACC test accuracy ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['NACC'])), float(np.std(accu['A']['NACC']))), \
-          'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['NACC'])), float(np.std(accu['B']['NACC']))), \
-          'C {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['C']['NACC'])), float(np.std(accu['C']['NACC']))))
-    print('AIBL test accuracy ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['AIBL'])), float(np.std(accu['A']['AIBL']))), \
-          'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['AIBL'])), float(np.std(accu['B']['AIBL']))), \
-          'C {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['C']['AIBL'])), float(np.std(accu['C']['AIBL']))))
-    print('FHS test accuracy  ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['FHS'])), float(np.std(accu['A']['FHS']))), \
-          'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['FHS'])), float(np.std(accu['B']['FHS']))), \
-          'C {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['C']['FHS'])), float(np.std(accu['C']['FHS']))))
-
-##############################################################################################
-# roi count meshgrid
-def mlp_A_valid(exp_idx, repe_time, accu, config):
-    mlp_setting = config
-    for i in range(repe_time):
-        mlp = MLP_Wrapper_A(imbalan_ratio=mlp_setting['imbalan_ratio'],
-                            fil_num=mlp_setting['fil_num'],
-                            drop_rate=mlp_setting['drop_rate'],
-                            batch_size=mlp_setting['batch_size'],
-                            balanced=mlp_setting['balanced'],
-                            roi_threshold=mlp_setting['roi_threshold'],
-                            roi_count=mlp_setting['roi_count'],
-                            choice=mlp_setting['choice'],
-                            exp_idx=exp_idx,
-                            seed=seed+i,
-                            model_name='mlp_A_non_filter',
-                            metric='accuracy')
-        mlp.train(lr=mlp_setting['learning_rate'],
-                  epochs=mlp_setting['train_epochs'])
-        accu_valid = mlp.test(i)[1]
-        accu['A']['valid'].append(accu_valid)
-
-
-def mlp_A_count(config):
-    print('##################################################')
-    print(config)
-    accu = {'A':{'valid':[]}}
-    for exp_idx in range(5):
-        mlp_A_valid(exp_idx, 1, accu, config)
-    print('ADNI valid accuracy ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['valid'])), float(np.std(accu['A']['valid']))))
-# roi count meshgrid
-###################################################################################################
-
-
 def mlp_A(config):
     print('##################################################')
     print(config)
     accu = {'A':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
     for exp_idx in range(5):
-        # print(exp_idx)
         mlp_A_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['test'])), float(np.std(accu['A']['test']))))
@@ -309,15 +248,6 @@ def mlp_F(config):
 if __name__ == "__main__":
     config = read_json('./config.json')
     seed = 1000
-
-    # config['mlp_A']['choice'] = 'thres'
-    # config['mlp_A']['roi_threshold'] = -2
-    # mlp_A_count(config['mlp_A'])
-
-    # for count in [20, 50, 100, 200, 400, 800, 1600]:
-    #     config['mlp_A']["roi_count"] = count
-    #     mlp_A_count(config['mlp_A'])
-
     # mlp_A(config["mlp_A"])
     # mlp_B(config["mlp_B"])
     mlp_C(config["mlp_C"])

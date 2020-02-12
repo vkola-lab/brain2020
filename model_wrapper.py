@@ -26,7 +26,7 @@ model wrapper class are defined in this scripts which includes the following met
 
 """
 
-class CNN_Wraper:
+class CNN_Wrapper:
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx, model_name, metric):
         self.seed = seed
         self.exp_idx = exp_idx
@@ -150,7 +150,7 @@ class CNN_Wraper:
         self.test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False)
 
 
-class FCN_Wraper(CNN_Wraper):
+class FCN_Wrapper(CNN_Wrapper):
     def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx, model_name, metric, patch_size):
         self.seed = seed
         self.exp_idx = exp_idx
@@ -242,7 +242,7 @@ class FCN_Wraper(CNN_Wraper):
         print('DPM generation is done')
 
 
-class MLP_Wrapper_A(CNN_Wraper):
+class MLP_Wrapper_A(CNN_Wrapper):
     def __init__(self, imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric, roi_threshold, roi_count=200, choice='count'):
         self.seed = seed
         self.imbalan_ratio = imbalan_ratio
@@ -427,7 +427,7 @@ class MLP_Wrapper_C(MLP_Wrapper_A):
         return accu_list
 
 
-class MLP_Wrapper_D(CNN_Wraper):
+class MLP_Wrapper_D(CNN_Wrapper):
     def __init__(self, imbalan_ratio, fil_num, drop_rate, seed, batch_size, balanced, exp_idx, model_name, metric):
         self.seed = seed
         self.imbalan_ratio = imbalan_ratio
