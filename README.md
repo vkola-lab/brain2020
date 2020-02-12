@@ -22,25 +22,20 @@ Please refer to our paper for more details.
 
 ## How to use
 
-These instructions will help you properly configure and use the tool. For detailed usage of the parameters, you may refer to Documentation section.
+These instructions will help you properly configure and use the tool.
 
 ### Data
 
 We trained, validated and tested the framework using the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. To investigate the generalizability of the framework, we externally tested the framework on the National Alzheimer's Coordinating Center (NACC), the Australian Imaging Biomarkers and Lifestyle Study of Ageing (AIBL) and Framingham Heart Study (FHS) datasets.
 
-To download the data, please contact those affiliations directly. We only provide few data samples in the repo for the purpose of illustration. We organized the data into 3 folders:
+To download the raw data, please contact those affiliations directly. In "./lookupcsv/" folder, we provided csv table containing subjects details used in this study for each dataset. We also provided all data preprocessing manuscripts in "./Data_Preprocess/" folder. After data preprocssing, the data can be stored in the folder structure like below:
 
 ```
-<repository_root>/data/ADNI/
-<repository_root>/data/NACC/
-<repository_root>/data/AIBL/
+data_dir/ADNI/
+data_dir/NACC/
+data_dir/AIBL/
+data_dir/FHS/
 ```
-
-Inside each of the folders, we provide a table of metadata of the subjects for all MRI scans that we used for model development and validation. Note that this framework should also work on your own T1-weighted MRI data if the following data preprocessing pipeline is done properly.
-
-1. Register the MRI to template, i.e, any one of the sample MRIs provided.
-2. Normalize the data using: data = (data - data.mean()) / data.std()
-3. Clip the data to the range [-1, 2.5]
 
 ### Code dependencies
 
@@ -48,53 +43,53 @@ The tool was developped based on the following packages:
 
 1. PyTorch (1.1 or greater).
 2. NumPy (1.16 or greater).
-3. pandas (0.24 or greater).
+3. matplotlib (3.0.3 or greater)
 4. tqdm (4.31 or greater).
 
 Please note that the dependencies may require Python 3.6 or greater. It is recommemded to install and maintain all packages by using [`conda`](https://www.anaconda.com/) or [`pip`](https://pypi.org/project/pip/). For the installation of GPU accelerated PyTorch, additional effort may be required. Please check the official websites of [PyTorch](https://pytorch.org/get-started/locally/) and [CUDA](https://developer.nvidia.com/cuda-downloads) for detailed instructions.
 
 ### Configuration file
 
-The configuration file is a json file, which looks like this:
+The configuration file is a json file which allows you conveniently change hyperparameters of models used in this study. 
 
 ```json
 {
-    "fcn": {
-        "__init__": {
-            "channels":             20,
-            "dropout":              0.6
-        },
-        "fit": {
-            "trn_mri_fp":           ["./data/ADNI/"],
-            "vld_mri_fp":           ["./data/NACC/", "./data/AIBL/"],
-            "n_epoch":              2000,             
-            "pretrained_weights":   "",             
-            "batch_size":           16,             
-            "learning_rate":        0.0001
-        },
-        "predict": {
-        }
+    "repeat_time":              5,
+    "fcn":{
+        "fil_num":              20,
+        "drop_rate":            0.5,
+        "patch_size":           47,   # 47 has to be fixed, otherwise the FCN model has to change accordingly
+        "batch_size":           10,
+        "balanced":             1,    # to solve data imbalance issue, we provdided two solution: set value to 0 (weighted cross entropy loss), set value to 1 (pytorch sampler samples data with probability according to the category)
+        "Data_dir":             "/data_dir/ADNI/",
+        "learning_rate":        0.0001,
+        "train_epochs":         3000
     },
-    "mlp": {
-        "__init__": {
-            "hmap_fn":              "./dpm_statistics/ADNI/MCC.npy",
-            "features":             ["rmap"],
-            "hidden_dim":           64,
-            "dropout":              0.5
-        },
-        "fit": {
-            "dpm_fp":               ["./dpm/ADNI/"],
-            "info_fn":              ["./data/ADNI/ADNI.csv"],
-            "loss_balance":         2.3,
-            "n_epoch":              200, 
-            "batch_size":           10,
-            "learning_rate":        0.01
-        },
-        "predict": {
-            "dpm_fp":               ["./dpm/NACC/", "./dpm/AIBL/"],
-            "info_fn":              ["./data/NACC/NACC.csv", "./data/AIBL/NACC.csv"],
-            "batch_size":           -1
-        }
+    "mlp_A": {
+        "imbalan_ratio":        1.0,
+        "fil_num":              100,
+        "drop_rate":            0.5,
+        "batch_size":           8,
+        "balanced":             0,
+        "roi_threshold":        0.6,
+        "roi_count":            200,
+        "choice":               "count",
+        "learning_rate":        0.01,
+        "train_epochs":         300
+    }, 
+    
+    ....
+    ....
+    
+    "cnn": {
+        "fil_num":              20,
+        "drop_rate":            0.137,
+        "batch_size":           2,
+        "balanced":             0,
+        "Data_dir":             "/data_dir/ADNI/",
+        "learning_rate":        0.0001,
+        "train_epochs":         200
+    }
 }
 ```
 
