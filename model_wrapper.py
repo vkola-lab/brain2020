@@ -27,7 +27,31 @@ model wrapper class are defined in this scripts which includes the following met
 """
 
 class CNN_Wrapper:
-    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx, model_name, metric):
+    def __init__(self,
+                 fil_num,
+                 drop_rate,
+                 seed,
+                 batch_size,
+                 balanced,
+                 Data_dir,
+                 exp_idx,
+                 model_name,
+                 metric):
+
+        """
+            :param fil_num:    output channel number of the first convolution layer
+            :param drop_rate:  dropout rate of the last 2 layers, see model.py for details
+            :param seed:       random seed
+            :param batch_size: batch size for training CNN
+            :param balanced:   balanced could take value 0 or 1, corresponding to different approaches to handle data imbalance,
+                               see self.prepare_dataloader for more details
+            :param Data_dir:   data path for training data
+            :param exp_idx:    experiment index maps to different data splits
+            :param model_name: give a name to the model
+            :param metric:     metric used for saving model during training, can be either 'accuracy' or 'MCC'
+                               for example, if metric == 'accuracy', then the time point where validation set has best accuracy will be saved
+        """
+
         self.seed = seed
         self.exp_idx = exp_idx
         self.Data_dir = Data_dir
@@ -150,7 +174,33 @@ class CNN_Wrapper:
 
 
 class FCN_Wrapper(CNN_Wrapper):
-    def __init__(self, fil_num, drop_rate, seed, batch_size, balanced, Data_dir, exp_idx, model_name, metric, patch_size):
+
+    def __init__(self, fil_num,
+                       drop_rate,
+                       seed,
+                       batch_size,
+                       balanced,
+                       Data_dir,
+                       exp_idx,
+                       model_name,
+                       metric,
+                       patch_size):
+
+        """
+            :param fil_num:    output channel number of the first convolution layer
+            :param drop_rate:  dropout rate of the last 2 layers, see model.py for details
+            :param seed:       random seed
+            :param batch_size: batch size for training FCN
+            :param balanced:   balanced could take value 0 or 1, corresponding to different approaches to handle data imbalance,
+                               see self.prepare_dataloader for more details
+            :param Data_dir:   data path for training data
+            :param exp_idx:    experiment index maps to different data splits
+            :param model_name: give a name to the model
+            :param metric:     metric used for saving model during training, can take 'accuracy' or 'MCC'
+                               for example, if metric == 'accuracy', then the time point where validation set has best accuracy will be saved
+            :param patch_size: size of patches for FCN training, must be 47. otherwise model has to be changed accordingly
+        """
+
         self.seed = seed
         self.exp_idx = exp_idx
         self.Data_dir = Data_dir
@@ -159,9 +209,11 @@ class FCN_Wrapper(CNN_Wrapper):
         self.eval_metric = get_accu if metric == 'accuracy' else get_MCC
         self.model = _FCN(num=fil_num, p=drop_rate).cuda()
         self.prepare_dataloader(batch_size, balanced, Data_dir)
+        if not os.path.exists('./checkpoint_dir/'): os.mkdir('./checkpoint_dir/')
         self.checkpoint_dir = './checkpoint_dir/{}_exp{}/'.format(self.model_name, exp_idx)
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
+        if not os.path.exists('./DPMs/'): os.mkdir('./DPMs/')
         self.DPMs_dir = './DPMs/{}_exp{}/'.format(self.model_name, exp_idx)
         if not os.path.exists(self.DPMs_dir):
             os.mkdir(self.DPMs_dir)

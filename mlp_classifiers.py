@@ -1,9 +1,9 @@
-from model_wraper import MLP_Wrapper_A, MLP_Wrapper_B, MLP_Wrapper_C, MLP_Wrapper_D, MLP_Wrapper_E, MLP_Wrapper_F
+from model_wrapper import MLP_Wrapper_A, MLP_Wrapper_B, MLP_Wrapper_C, MLP_Wrapper_D, MLP_Wrapper_E, MLP_Wrapper_F
 from utils import read_json
 import numpy as np
 
 def mlp_A_train(exp_idx, repe_time, accu, config):
-    # mlp model build on features selected from disease probability maps generated from FCN
+    # mlp model build on features selected from disease probability maps (DPMs) generated from FCN
     mlp_setting = config
     for i in range(repe_time):
         mlp = MLP_Wrapper_A(imbalan_ratio=mlp_setting['imbalan_ratio'],
@@ -153,7 +153,7 @@ def mlp_A(config):
     print('##################################################')
     print(config)
     accu = {'A':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-    for exp_idx in range(5):
+    for exp_idx in range(repe_time):
         mlp_A_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['test'])), float(np.std(accu['A']['test']))))
@@ -169,7 +169,7 @@ def mlp_B(config):
     print('##################################################')
     print(config)
     accu = {'B':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-    for exp_idx in range(5):
+    for exp_idx in range(repe_time):
         mlp_B_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'B {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['B']['test'])), float(np.std(accu['B']['test']))))
@@ -185,7 +185,7 @@ def mlp_C(config):
     print('##################################################')
     print(config)
     accu = {'C':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-    for exp_idx in range(5):
+    for exp_idx in range(repe_time):
         mlp_C_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'C {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['C']['test'])), float(np.std(accu['C']['test']))))
@@ -201,7 +201,7 @@ def mlp_D(config):
     print('##################################################')
     print(config)
     accu = {'D':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-    for exp_idx in range(5):
+    for exp_idx in range(repe_time):
         mlp_D_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'D {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['D']['test'])), float(np.std(accu['D']['test']))))
@@ -217,7 +217,7 @@ def mlp_E(config):
     print('##################################################')
     print(config)
     accu = {'E':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-    for exp_idx in range(5):
+    for exp_idx in range(repe_time):
         mlp_E_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'E {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['E']['test'])), float(np.std(accu['E']['test']))))
@@ -233,7 +233,7 @@ def mlp_F(config):
     print('##################################################')
     print(config)
     accu = {'F':{'test':[], 'NACC':[], 'AIBL':[], 'FHS':[]}}
-    for exp_idx in range(5):
+    for exp_idx in range(repe_time):
         mlp_F_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'F {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['F']['test'])), float(np.std(accu['F']['test']))))
@@ -247,12 +247,12 @@ def mlp_F(config):
 
 if __name__ == "__main__":
     config = read_json('./config.json')
-    seed = 1000
-    # mlp_A(config["mlp_A"])
-    # mlp_B(config["mlp_B"])
+    seed, repe_time = 1000, config['repeat_time']
+    mlp_A(config["mlp_A"])
+    mlp_B(config["mlp_B"])
     mlp_C(config["mlp_C"])
-    # mlp_D(config["mlp_D"])
-    # mlp_E(config["mlp_E"])
-    # mlp_F(config['mlp_F'])
+    mlp_D(config["mlp_D"])
+    mlp_E(config["mlp_E"])
+    mlp_F(config['mlp_F'])
 
     

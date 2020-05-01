@@ -27,6 +27,30 @@ dataloaders are defined in this scripts:
         (c). Testing stage:     test the model on ADNI_test, NACC, FHS and AIBL datasets
 """
 
+class Augment:
+    def __init__(self):
+        self.contrast_factor = 0.2
+        self.bright_factor = 0.4
+        self.sig_factor = 0.2
+
+    def change_contrast(self, image):
+        ratio = 1 + (random.random() - 0.5)*self.contrast_factor
+        return image.mean() + ratio*(image - image.mean())
+
+    def change_brightness(self, image):
+        val = (random.random() - 0.5)*self.bright_factor
+        return image + val
+
+    def add_noise(self, image):
+        sig = random.random() * self.sig_factor
+        return np.random.normal(0, sig, image.shape) + image
+
+    def apply(self, image):
+        image = self.change_contrast(image)
+        image = self.change_brightness(image)
+        image = self.add_noise(image)
+        return image
+
 
 class CNN_Data(Dataset):
     """
@@ -56,21 +80,45 @@ class CNN_Data(Dataset):
 
 
 class FCN_Data(CNN_Data):
-    def __init__(self, Data_dir, exp_idx, stage, whole_volume=False, seed=1000, patch_size=47):
+    def __init__(self,
+                 Data_dir,
+                 exp_idx,
+                 stage,
+                 whole_volume=False,
+                 seed=1000,
+                 patch_size=47,
+                 transform=Augment()):
+
+        """
+        :param Data_dir:      data path
+        :param exp_idx:       experiment index maps to different data splits
+        :param stage:         stage could be 'train', 'valid', 'test' and etc ...
+        :param whole_volume:  if whole_volume == True, get whole MRI;
+                              if whole_volume == False and stage == 'train', sample patches for training
+        :param seed:          random seed
+        :param patch_size:    patch size has to be 47, otherwise model needs to be changed accordingly
+        :param transform:     transform is about data augmentation, if transform == None: no augmentation
+                              for more details, see Augment class
+        """
+
         CNN_Data.__init__(self, Data_dir, exp_idx, stage, seed)
         self.stage = stage
+        self.transform = transform
         self.whole = whole_volume
         self.patch_size = patch_size
         self.patch_sampler = PatchGenerator(patch_size=self.patch_size)
 
     def __getitem__(self, idx):
         label = self.Label_list[idx]
-        data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
         if self.stage == 'train' and not self.whole:
+            data = np.load(self.Data_dir + self.Data_list[idx] + '.npy', mmap_mode='r').astype(np.float32)
             patch = self.patch_sampler.random_sample(data)
+            if self.transform:
+                patch = self.transform.apply(patch).astype(np.float32)
             patch = np.expand_dims(patch, axis=0)
             return patch, label
         else:
+            data = np.load(self.Data_dir + self.Data_list[idx] + '.npy').astype(np.float32)
             data = np.expand_dims(padding(data, win_size=self.patch_size // 2), axis=0)
             return data, label
 
