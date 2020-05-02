@@ -1,5 +1,7 @@
 # Development and validation of an interpretable deep learning framework for Alzheimer’s disease classification
 
+This work is published in #Brain# (https://doi.org/10.1093/brain/awaa137).
+
 ## Introduction
 
 This repo contains a PyTorch implementation of a deep learning framework that delineates explainable Alzheimer’s disease signatures (3D disease risk map) from magnetic resonance imaging which are then integrated with multimodal inputs, including age, gender, and mini-mental state examination score. Our framework links a fully convolutional network (FCN) to a multilayer perceptron. The FCN generates patient specific 3D disease risk map (dense local predictions) see below. 
