@@ -1,6 +1,6 @@
 # Development and validation of an interpretable deep learning framework for Alzheimer’s disease classification
 
-This work is published in #Brain# (https://doi.org/10.1093/brain/awaa137).
+This work is published in _Brain_ (https://doi.org/10.1093/brain/awaa137).
 
 ## Introduction
 
