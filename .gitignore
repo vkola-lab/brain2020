@@ -3,7 +3,7 @@
 /mongodb/*
 /output/*
 /DPMs/*
-/plot/*
+# /plot/
 *.pyc
 *.tif
 .*

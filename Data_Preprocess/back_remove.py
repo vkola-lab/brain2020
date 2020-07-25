@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from glob import glob
 from tqdm import tqdm
 import os
+import sys
 
 def back_remove(file, temp, new_path):
 
@@ -48,15 +49,14 @@ def back_remove(file, temp, new_path):
     np.save(new_path + filename, new_data)
 
 if __name__ == "__main__":
+    folder = sys.argv[1]
+    out_folder = sys.argv[2]
     temp = np.load('./brain_region.npy')
-    for file in tqdm(glob('/data/datasets/ADNI/*.npy')):
-        back_remove(file, temp, './ADNI_NoBack/')
-    for file in tqdm(glob('/data/datasets/FHS/*.npy')):
-        back_remove(file, temp, './FHS_NoBack/')
-    for file in tqdm(glob('/data/datasets/NACC/*.npy')):
-        back_remove(file, temp, './NACC_NoBack/')
-    for file in tqdm(glob('/data/datasets/AIBL/*.npy')):
-        back_remove(file, temp, './AIBL_NoBack/')
+    for file in glob(folder + '*.nii'):
+        back_remove(file, temp, out_folder)
+
+
+
 
     
 
