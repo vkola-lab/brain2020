@@ -39,6 +39,46 @@ data_dir/AIBL/
 data_dir/FHS/
 ```
 
+### Preprocessing
+#### 1. preprocessing steps for FCN model:
+
+* **step1: Linear registration using FSL FLIRT function** (need FSL to be installed). 
+
+    We provided this bash pipeline (Data_Preprocess/registration.sh) to perform this step. To run the registration.sh on a single case:
+    ```
+    bash registation.sh folder_of_your_nifti_file nifti_filename.nii
+    ```
+    To register all data in a folder, you can use the python script (Data_Preprocess/registration.py) in which calls the registration.sh.
+    ```
+    python registration.py folder_of_your_raw_data
+    ```
+
+* **step2: convert nifit into numpy and perform z-score voxel normalization** 
+
+    "(scan-scan.mean())/scan.std()"        see Data_Preprocess/intensity_normalization_and_clip.py
+
+* **step3: clip out the intensity outliers (voxel<-1 or voxel>2.5)** 
+
+    "np.clip(scan, -1, 2.5)"               see Data_Preprocess/intensity_normalization_and_clip.py
+    
+* **step4: background removal** 
+    
+    Background signals outside the skull exist in the MRI. We set all background voxels with the same intensity (value=-1) to decrease the incluence of background signals. The general idea of doing background removal is using the Depth First Search with corners as starting points, then gradually filling out the searched background regions, until it reach outer bright sphere signals from skull fat. To run this step:
+    
+    ```
+    python back_removal.py folder_of_the_processed_scans_with_step123_done/
+    ```
+    The background mask looks like below:
+    <img src="plot/background_mask.png" width="400"/>
+
+
+#### 2. processing step for post analysis on regional correlation between neuropath outcome and FCN prediction:
+    
+  * We performed subcortical segmentation using FreeSurfer on those 11 FHS cases where neuropath data is available. To do the subcortical segmentation, you need to firstly do "recon-all" step using the freesurfer and then run the bash script below to get the final outcome: 
+      ```
+      bash segment_combine_label.sh
+      ``` 
+
 ### Code dependencies
 
 The tool was developped based on the following packages:
