@@ -46,35 +46,41 @@ data_dir/FHS/
 
     We provided this bash pipeline (Data_Preprocess/registration.sh) to perform this step. To run the registration.sh on a single case:
     ```
-    bash registation.sh folder_of_your_nifti_file nifti_filename.nii
+    bash registation.sh folder_of_raw_nifti/ filename.nii output_folder_for_processed_data/
     ```
     To register all data in a folder, you can use the python script (Data_Preprocess/registration.py) in which calls the registration.sh.
     ```
-    python registration.py folder_of_your_raw_data
+    python registration.py folder_of_raw_data/ folder_for_processed_data/
     ```
 
 * **step2: convert nifit into numpy and perform z-score voxel normalization** 
 
-    "(scan-scan.mean())/scan.std()"        see Data_Preprocess/intensity_normalization_and_clip.py
+    "(scan-scan.mean())/scan.std()"        
 
 * **step3: clip out the intensity outliers (voxel<-1 or voxel>2.5)** 
 
-    "np.clip(scan, -1, 2.5)"               see Data_Preprocess/intensity_normalization_and_clip.py
+    "np.clip(scan, -1, 2.5)"   
+    
+    To run step 2 and 3 together:
+    ```
+    python intensity_normalization_and_clip.py folder_for_step1_outcomes/
+    ```
     
 * **step4: background removal** 
     
     Background signals outside the skull exist in the MRI. We set all background voxels with the same intensity (value=-1) to decrease the incluence of background signals. The general idea of doing background removal is using the Depth First Search with corners as starting points, then gradually filling out the searched background regions, until it reach outer bright sphere signals from skull fat. To run this step:
     
     ```
-    python back_removal.py folder_of_the_processed_scans_with_step123_done/
+    python back_removal.py folder_for_prev_outcome_after_step123/ folder_for_final_output_of_step4/
     ```
     The background mask looks like below:
-    <img src="plot/background_mask.png" width="400"/>
-
-
-#### 2. processing step for post analysis on regional correlation between neuropath outcome and FCN prediction:
     
-  * We performed subcortical segmentation using FreeSurfer on those 11 FHS cases where neuropath data is available. To do the subcortical segmentation, you need to firstly do "recon-all" step using the freesurfer and then run the bash script below to get the final outcome: 
+    <img src="plot/background_mask.jpg" width="400"/>
+
+
+#### 2. processing step for post-analysis on regional correlation between neuropath outcome and FCN prediction:
+    
+  * We performed subcortical segmentation using FreeSurfer (need to be installed) on those 11 FHS cases where neuropath data is available. To do the subcortical segmentation, you need to firstly do "recon-all" step using the freesurfer and then run the bash script below to get the final outcome: 
       ```
       bash segment_combine_label.sh
       ``` 
@@ -87,6 +93,7 @@ The tool was developped based on the following packages:
 2. NumPy (1.16 or greater).
 3. matplotlib (3.0.3 or greater)
 4. tqdm (4.31 or greater).
+5. FSL 
 
 Please note that the dependencies may require Python 3.6 or greater. It is recommemded to install and maintain all packages by using [`conda`](https://www.anaconda.com/) or [`pip`](https://pypi.org/project/pip/). For the installation of GPU accelerated PyTorch, additional effort may be required. Please check the official websites of [PyTorch](https://pytorch.org/get-started/locally/) and [CUDA](https://developer.nvidia.com/cuda-downloads) for detailed instructions.
 
