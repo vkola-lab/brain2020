@@ -71,7 +71,7 @@ data_dir/FHS/
     Background signals outside the skull exist in the MRI. We set all background voxels with the same intensity (value=-1) to decrease the incluence of background signals. The general idea of doing background removal is using the Depth First Search with corners as starting points, then gradually filling out the searched background regions, until it reach outer bright sphere signals from skull fat. To run this step:
     
     ```
-    python back_removal.py folder_for_prev_outcome_after_step123/ folder_for_final_output_of_step4/
+    python back_remove.py folder_for_prev_outcome_after_step123/ folder_for_final_output_of_step4/
     ```
     The background mask looks like below:
     
