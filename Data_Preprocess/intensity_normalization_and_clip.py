@@ -1,6 +1,7 @@
 import numpy as np
 import nibabel as nib
 import sys
+from glob import glob 
 
 def nifti_to_numpy(file):
     data = nib.load(file).get_data()[:181, :217, :181]
