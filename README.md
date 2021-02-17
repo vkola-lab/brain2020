@@ -24,6 +24,11 @@ Please refer to our paper for more details.
 
 ## How to use
 
+recommend git clone only depth==1 to save space and cloning time (.git folder is too large, will clean .git later)
+```
+git clone https://github.com/vkola-lab/brain2020.git --depth 1
+```
+
 These instructions will help you properly configure and use the tool.
 
 ### Data
