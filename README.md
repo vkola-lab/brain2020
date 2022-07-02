@@ -58,7 +58,7 @@ data_dir/FHS/
     python registration.py folder_of_raw_data/ folder_for_processed_data/
     ```
 
-* **step2: convert nifit into numpy and perform z-score voxel normalization** 
+* **step2: convert nifti into numpy and perform z-score voxel normalization** 
 
     "(scan-scan.mean())/scan.std()"        
 
