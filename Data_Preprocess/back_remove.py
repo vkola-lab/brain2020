@@ -10,7 +10,7 @@ def back_remove(file, temp, new_path):
     if not os.path.exists(new_path):
         os.mkdir(new_path)
 
-    data = np.load(file)
+    data = np.load(file, allow_pickle=True)
     new_data = data[:,:,:]
 
     stack = [(0, 0, 0), (180, 0, 0), (0, 216, 0), (180, 216, 0)]
@@ -52,7 +52,13 @@ if __name__ == "__main__":
     folder = sys.argv[1]
     out_folder = sys.argv[2]
     temp = np.load('./brain_region.npy')
-    for file in glob(folder + '*.nii'):
+
+    # 假如路径写的是 /usr/local，那么就改为 /usr/local/
+    if (folder[-1] != '/'):
+        folder = folder + '/'
+
+    for file in glob(folder + '*.npy'):
+        print(file)
         back_remove(file, temp, out_folder)
 
 
