@@ -3,7 +3,7 @@ import sys
 sys.path.insert(1, '../')
 from utils import read_csv
 
-filenames, labels = read_csv('./ADNI.csv')
+filenames, labels = read_csv('./ADNI-200.csv')
 imageid = [name.split('_')[-1][1:] for name in filenames]
 vol_list = []
 

@@ -158,7 +158,7 @@ def read_csv_complete_apoe(filename):
 
 
 def data_split(repe_time):
-    with open('./lookupcsv/ADNI.csv', 'r') as f:
+    with open('./lookupcsv/ADNI-200.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
     labels, train_valid, test = your_list[0:1], your_list[1:338], your_list[338:]

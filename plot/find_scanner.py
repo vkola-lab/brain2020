@@ -2,7 +2,7 @@ import csv
 from collections import defaultdict
 
 scanner_csv = './ADNI_scanner.csv'
-ADNI_table = '../lookupcsv/ADNI.csv'
+ADNI_table = '../lookupcsv/ADNI-200.csv'
 
 scanner_dict = defaultdict(dict)
 with open(scanner_csv, 'r') as f:
