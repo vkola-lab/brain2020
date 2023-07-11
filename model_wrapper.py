@@ -84,8 +84,8 @@ class CNN_Wrapper:
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
                 Data_dir = self.Data_dir
-                if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = Data_dir.replace('ADNI', stage)
+                # if stage in ['AIBL', 'NACC', 'FHS']:
+                #     Data_dir = Data_dir.replace('ADNI', stage)
                 data = CNN_Data(Data_dir, self.exp_idx, stage=stage, seed=self.seed)
                 dataloader = DataLoader(data, batch_size=10, shuffle=False)
                 f = open(self.checkpoint_dir + 'raw_score_{}.txt'.format(stage), 'w')
@@ -108,8 +108,8 @@ class CNN_Wrapper:
         with torch.no_grad():
             for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
                 Data_dir = self.Data_dir
-                if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = Data_dir.replace('ADNI', stage)
+                # if stage in ['AIBL', 'NACC', 'FHS']:
+                #     Data_dir = Data_dir.replace('ADNI', stage)
                 data = CNN_Data(Data_dir, self.exp_idx, stage=stage, seed=self.seed)
                 filenames = data.Data_list
                 dataloader = DataLoader(data, batch_size=1, shuffle=False)
@@ -227,6 +227,7 @@ class FCN_Wrapper(CNN_Wrapper):
         for self.epoch in range(epochs):
             self.train_model_epoch()
             if self.epoch % 20 == 0:
+                print('epoch: ', self.epoch)
                 valid_matrix = self.valid_model_epoch()
                 print('{}th epoch validation confusion matrix:'.format(self.epoch), valid_matrix, 'eval_metric:', "%.4f" % self.eval_metric(valid_matrix))
                 self.save_checkpoint(valid_matrix)
@@ -239,6 +240,7 @@ class FCN_Wrapper(CNN_Wrapper):
         with torch.no_grad():
             self.fcn.train(False)
             for idx, (inputs, labels) in enumerate(self.valid_dataloader):
+            # for idx, (inputs, labels) in enumerate(self.train_dataloader):
                 inputs, labels = inputs.cuda(), labels.cuda()
                 DPM = self.fcn(inputs, stage='inference')
                 DPMs.append(DPM.cpu().numpy().squeeze())
@@ -271,10 +273,11 @@ class FCN_Wrapper(CNN_Wrapper):
         self.fcn = self.model.dense_to_conv()
         self.fcn.train(False)
         with torch.no_grad():
-            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+            # for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS']:
+            for stage in ['train', 'valid', 'test']:
                 Data_dir = self.Data_dir
-                if stage in ['AIBL', 'NACC', 'FHS']:
-                    Data_dir = Data_dir.replace('ADNI', stage)
+                # if stage in ['AIBL', 'NACC', 'FHS']:
+                #     Data_dir = Data_dir.replace('ADNI', stage)
                 data = FCN_Data(Data_dir, self.exp_idx, stage=stage, whole_volume=True, seed=self.seed, patch_size=self.patch_size)
                 filenames = data.Data_list
                 dataloader = DataLoader(data, batch_size=1, shuffle=False)
@@ -370,7 +373,8 @@ class MLP_Wrapper_A(CNN_Wrapper):
         self.model.train(False)
         accu_list = []
         with torch.no_grad():
-            for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS_Full']:
+            # for stage in ['train', 'valid', 'test', 'AIBL', 'NACC', 'FHS_Full']:
+            for stage in ['train', 'valid', 'test']:
                 data = MLP_Data(self.Data_dir, self.exp_idx, stage=stage, roi_threshold=self.roi_threshold, roi_count=self.roi_count, choice=self.choice, seed=self.seed)
                 dataloader = DataLoader(data, batch_size=10, shuffle=False)
                 f = open(self.checkpoint_dir + 'raw_score_{}_{}.txt'.format(stage, repe_idx), 'w')

@@ -3,6 +3,8 @@
 /mongodb/*
 /output/*
 /DPMs/*
+data/
+data_dir/
 # /plot/
 *.pyc
 *.tif

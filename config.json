@@ -6,7 +6,7 @@
         "patch_size":           47,
         "batch_size":           10,
         "balanced":             1,
-        "Data_dir":             "/data/datasets/ADNI_NoBack/",
+        "Data_dir":             "/home/liuj/文档/brain2020/data/ADNI-FINAL/",
         "learning_rate":        0.0001,
         "train_epochs":         3000
     },
@@ -84,7 +84,7 @@
         "drop_rate":            0.137,
         "batch_size":           2,
         "balanced":             0,
-        "Data_dir":             "/data/datasets/ADNI_NoBack/",
+        "Data_dir":             "/home/liuj/文档/brain2020/data/ADNI-FINAL/",
         "learning_rate":        0.0001,
         "train_epochs":         200
     }

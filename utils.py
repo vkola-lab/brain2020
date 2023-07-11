@@ -158,10 +158,10 @@ def read_csv_complete_apoe(filename):
 
 
 def data_split(repe_time):
-    with open('./lookupcsv/ADNI-200.csv', 'r') as f:
+    with open('./lookupcsv/ADNI-INF-635.csv', 'r') as f:
         reader = csv.reader(f)
         your_list = list(reader)
-    labels, train_valid, test = your_list[0:1], your_list[1:338], your_list[338:]
+    labels, train_valid, test = your_list[0:1], your_list[1:535], your_list[535:]
     for i in range(repe_time):
         random.shuffle(train_valid)
         folder = 'lookupcsv/exp{}/'.format(i)
@@ -169,10 +169,10 @@ def data_split(repe_time):
             os.mkdir(folder) 
         with open(folder + 'train.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-            wr.writerows(labels + train_valid[:250])
+            wr.writerows(labels + train_valid[:374])
         with open(folder + 'valid.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-            wr.writerows(labels + train_valid[250:])
+            wr.writerows(labels + train_valid[374:])
         with open(folder + 'test.csv', 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
             wr.writerows(labels + test)
@@ -199,18 +199,18 @@ def DPM_statistics(DPMs, Labels):
     for label, DPM in zip(Labels, DPMs):
         risk_map = get_AD_risk(DPM)
         if label == 0:
-            TN += (risk_map < 0.5).astype(np.int)
-            FP += (risk_map >= 0.5).astype(np.int)
+            TN += (risk_map < 0.5).astype(int)
+            FP += (risk_map >= 0.5).astype(int)
         elif label == 1:
-            TP += (risk_map >= 0.5).astype(np.int)
-            FN += (risk_map < 0.5).astype(np.int)
+            TP += (risk_map >= 0.5).astype(int)
+            FN += (risk_map < 0.5).astype(int)
     tn = float("{0:.2f}".format(np.sum(TN) / voxel_number))
     fn = float("{0:.2f}".format(np.sum(FN) / voxel_number))
     tp = float("{0:.2f}".format(np.sum(TP) / voxel_number))
     fp = float("{0:.2f}".format(np.sum(FP) / voxel_number))
     matrix = [[tn, fn], [fp, tp]]
     count = len(Labels)
-    TP, TN, FP, FN = TP.astype(np.float)/count, TN.astype(np.float)/count, FP.astype(np.float)/count, FN.astype(np.float)/count
+    TP, TN, FP, FN = TP.astype(float)/count, TN.astype(float)/count, FP.astype(float)/count, FN.astype(float)/count
     ACCU = TP + TN
     F1 = 2*TP/(2*TP+FP+FN)
     MCC = (TP*TN-FP*FN)/(np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))+0.00000001*np.ones(shape))

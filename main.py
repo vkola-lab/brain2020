@@ -48,12 +48,12 @@ if __name__ == "__main__":
     data_split(repe_time=repe_time)
 
     # to perform FCN training #####################################
-    with torch.cuda.device(2):  # specify which gpu to use
+    with torch.cuda.device(1):  # specify which gpu to use
         fcn_main(seed)  # each FCN model will be independently trained on the corresponding data split
 
     # to perform CNN training #####################################
-    with torch.cuda.device(2): # specify which gpu to use
-        cnn_main(seed)  # each CNN model will be independently trained on the corresponding data split
+    # with torch.cuda.device(1): # specify which gpu to use
+    #     cnn_main(seed)  # each CNN model will be independently trained on the corresponding data split
         
 
 

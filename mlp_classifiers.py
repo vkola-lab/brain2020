@@ -20,11 +20,12 @@ def mlp_A_train(exp_idx, repe_time, accu, config):
                             metric='accuracy')
         mlp.train(lr=mlp_setting['learning_rate'],
                   epochs=mlp_setting['train_epochs'])
-        accu_test, accu_AIBL, accu_NACC, accu_FHS = mlp.test(i)[2:]
+        # accu_test, accu_AIBL, accu_NACC, accu_FHS = mlp.test(i)[2:]
+        accu_test = mlp.test(i)[2:]
         accu['A']['test'].append(accu_test)
-        accu['A']['NACC'].append(accu_NACC)
-        accu['A']['AIBL'].append(accu_AIBL)
-        accu['A']['FHS'].append(accu_FHS)
+        # accu['A']['NACC'].append(accu_NACC)
+        # accu['A']['AIBL'].append(accu_AIBL)
+        # accu['A']['FHS'].append(accu_FHS)
 
 
 def mlp_B_train(exp_idx, repe_time, accu, config):
@@ -157,12 +158,12 @@ def mlp_A(config):
         mlp_A_train(exp_idx, 3, accu, config)
     print('ADNI test accuracy ',
           'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['test'])), float(np.std(accu['A']['test']))))
-    print('NACC test accuracy ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['NACC'])), float(np.std(accu['A']['NACC']))))
-    print('AIBL test accuracy ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['AIBL'])), float(np.std(accu['A']['AIBL']))))
-    print('FHS test accuracy  ',
-          'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['FHS'])), float(np.std(accu['A']['FHS']))))
+    # print('NACC test accuracy ',
+    #       'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['NACC'])), float(np.std(accu['A']['NACC']))))
+    # print('AIBL test accuracy ',
+    #       'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['AIBL'])), float(np.std(accu['A']['AIBL']))))
+    # print('FHS test accuracy  ',
+    #       'A {0:.4f}+/-{1:.4f}'.format(float(np.mean(accu['A']['FHS'])), float(np.std(accu['A']['FHS']))))
 
 
 def mlp_B(config):
@@ -249,10 +250,10 @@ if __name__ == "__main__":
     config = read_json('./config.json')
     seed, repe_time = 1000, config['repeat_time']
     mlp_A(config["mlp_A"])
-    mlp_B(config["mlp_B"])
-    mlp_C(config["mlp_C"])
-    mlp_D(config["mlp_D"])
-    mlp_E(config["mlp_E"])
-    mlp_F(config['mlp_F'])
+    # mlp_B(config["mlp_B"])
+    # mlp_C(config["mlp_C"])
+    # mlp_D(config["mlp_D"])
+    # mlp_E(config["mlp_E"])
+    # mlp_F(config['mlp_F'])
 
     
